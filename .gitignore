@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+ENV/
+
+# Variables de entorno
+.env
+!.env.example
+
+# Datos (grandes — no versionar)
+data/raw/*
+data/processed/*
+data/external/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/external/.gitkeep
+
+# Modelos serializados (pesados — no versionar)
+models/**/*.pt
+models/**/*.pkl
+models/**/*.joblib
+models/**/beto_finetuned/
+!models/image_classifier/.gitkeep
+!models/sentiment_analyzer/.gitkeep
+!models/sales_predictor/.gitkeep
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
