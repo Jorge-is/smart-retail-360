@@ -17,11 +17,11 @@ Plataforma de inteligencia artificial para e-commerce que integra tres capacidad
 ```bash
 # 1. Clonar el repositorio
 git clone <repo-url>
-cd smartretail360
+cd smart-retail-360
 
 # 2. Crear entorno virtual
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+source .venv/bin/activate  # Windows: .\.venv\Scripts\Activate.ps1
 
 # 3. Instalar dependencias
 pip install -r requirements.txt
