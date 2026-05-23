@@ -3,7 +3,7 @@ from streamlit_option_menu import option_menu
 
 st.set_page_config(
     page_title="SmartRetail 360",
-    page_icon="🛍️",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -32,11 +32,11 @@ if selected == "Inicio":
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.info("**📦 Clasificador de Productos**\nClasificación automática por imagen usando EfficientNet-B0.")
+        st.info("**Clasificador de Productos**\nClasificación automática por imagen usando EfficientNet-B0.")
     with col2:
-        st.info("**💬 Análisis de Sentimiento**\nAnálisis de reseñas de clientes con BETO (Spanish BERT).")
+        st.info("**Análisis de Sentimiento**\nAnálisis de reseñas de clientes con BETO (Spanish BERT).")
     with col3:
-        st.info("**📈 Predicción de Ventas**\nPronostico de demanda con Prophet + sentimiento como variable exógena.")
+        st.info("**Predicción de Ventas**\nPronostico de demanda con Prophet + sentimiento como variable exógena.")
 
     st.divider()
     st.markdown("Usá el menú lateral para navegar entre módulos.")

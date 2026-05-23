@@ -5,7 +5,7 @@ from app.components.sidebar import model_info_card
 
 
 def render() -> None:
-    st.header("💬 Análisis de Sentimiento")
+    st.header("Análisis de Sentimiento")
     st.caption("Análisis de reseñas en español — BETO / TF-IDF")
 
     model_info_card("Sentimiento", "BETO (dccuchile/bert-base-spanish-wwm-uncased)", "F1 macro", "≥ 0.80")

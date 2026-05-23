@@ -4,7 +4,7 @@ from app.components.metrics_card import render_kpi_row
 
 
 def render() -> None:
-    st.header("🎯 Dashboard Integrado")
+    st.header("Dashboard Integrado")
     st.caption("Vista ejecutiva — los 3 módulos de un vistazo")
 
     st.info("Este dashboard se completa automáticamente a medida que usás los otros módulos en la misma sesión.")

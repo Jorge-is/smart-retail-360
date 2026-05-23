@@ -5,7 +5,7 @@ from app.components.sidebar import model_info_card
 
 
 def render() -> None:
-    st.header("📈 Predicción de Ventas")
+    st.header("Predicción de Ventas")
     st.caption("Pronóstico de demanda — Prophet (Meta)")
 
     model_info_card("Ventas", "Prophet", "MAPE", "≤ 15%")

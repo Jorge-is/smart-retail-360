@@ -6,7 +6,7 @@ from app.components.sidebar import model_info_card
 
 
 def render() -> None:
-    st.header("📦 Clasificador de Productos")
+    st.header("Clasificador de Productos")
     st.caption("Clasificación automática de imágenes — EfficientNet-B0")
 
     model_info_card("Imágenes", "EfficientNet-B0", "Accuracy (test)", "≥ 85%")
