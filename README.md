@@ -21,7 +21,7 @@ cd smart-retail-360
 
 # 2. Crear entorno virtual
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+source .venv/bin/activate  # Windows: .\.venv\Scripts\Activate.ps1
 
 # 3. Instalar dependencias
 pip install -r requirements.txt
