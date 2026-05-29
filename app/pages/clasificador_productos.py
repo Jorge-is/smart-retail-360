@@ -7,9 +7,17 @@ from app.components.sidebar import model_info_card
 
 def render() -> None:
     st.header("Clasificador de Productos")
-    st.caption("Clasificación automática de imágenes — EfficientNet-B0")
+    st.caption("Clasificación automática de imágenes — EfficientNet-B0 vs MobileNetV2")
 
-    model_info_card("Imágenes", "EfficientNet-B0", "Accuracy (test)", "≥ 85%")
+    model_info_card("Imágenes", "EfficientNet-B0 / MobileNetV2", "Accuracy (test)", "≥ 78–85%")
+
+    with st.sidebar:
+        model_choice = st.radio(
+            "Modelo activo",
+            ["EfficientNet-B0 (modelo final)", "MobileNetV2 (comparación)"],
+        )
+
+    model_name = "efficientnet" if "EfficientNet" in model_choice else "mobilenetv2"
 
     tab_single, tab_batch = st.tabs(["Imagen individual", "Carga por lote (CSV)"])
 
@@ -24,20 +32,23 @@ def render() -> None:
                 with st.spinner("Clasificando..."):
                     try:
                         from src.image_classifier.predict import predict
-                        result = predict(image)
+                        result = predict(image, model_name=model_name)
                         st.success(f"**{result['top_prediction']}**")
-                        st.caption(f"Tiempo de inferencia: {result['inference_time_ms']} ms")
+                        st.caption(f"Modelo: {result['model_used']} | Tiempo: {result['inference_time_ms']} ms")
                         render_confidence_bars(result["top_3"])
                     except Exception as e:
                         st.warning(f"Modelo no disponible aún: {e}")
-                        st.info("Entrenó el modelo primero corriendo el notebook 01 en Colab y copiá el .pt a models/image_classifier/")
+                        st.info(
+                            f"Entrenalo primero corriendo el notebook de {model_name} en Colab "
+                            "y copiá el .keras a models/image_classifier/"
+                        )
 
     with tab_batch:
         st.markdown("Subí un CSV con una columna `image_path` con rutas relativas a `data/`.")
         csv_file = st.file_uploader("CSV de imágenes", type=["csv"], key="batch_csv")
         if csv_file:
-            import pandas as pd
-            df = pd.read_csv(csv_file)
+            import polars as pl
+            df = pl.read_csv(csv_file)
             st.dataframe(df.head())
             if st.button("Clasificar lote"):
                 st.info("Implementación pendiente — disponible en semana 5.")

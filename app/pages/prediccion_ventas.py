@@ -1,34 +1,31 @@
 import streamlit as st
 
-from app.components.charts import sales_forecast_chart
-from app.components.sidebar import model_info_card
-
 
 def render() -> None:
     st.header("Predicción de Ventas")
-    st.caption("Pronóstico de demanda — Prophet (Meta)")
+    st.caption("Módulo 3 — Prophet (Meta)")
 
-    model_info_card("Ventas", "Prophet", "MAPE", "≤ 15%")
+    st.warning(
+        "Módulo en desarrollo — Disponible en versión futura del proyecto",
+        icon="🚧",
+    )
 
-    with st.sidebar:
-        store_id = st.number_input("ID de tienda", min_value=1, max_value=1115, value=1, step=1)
-        horizon = st.selectbox("Horizonte", [7, 15, 30], index=2, format_func=lambda x: f"{x} días")
-        use_sentiment = st.checkbox("Incluir sentimiento como variable exógena", value=False)
-        sentiment_score = None
-        if use_sentiment:
-            sentiment_score = st.slider("Sentimiento promedio (0=negativo, 1=positivo)", 0.0, 1.0, 0.5, 0.05)
+    st.markdown("""
+    Este módulo implementará predicción de demanda usando **Prophet (Meta)** con series temporales
+    del dataset Rossmann Store Sales.
 
-    if st.button("Generar pronóstico"):
-        with st.spinner(f"Pronosticando {horizon} días para tienda {store_id}..."):
-            try:
-                from src.sales_predictor.predict import predict
-                result = predict(store_id=int(store_id), horizon_days=int(horizon), sentiment_score=sentiment_score)
-                st.plotly_chart(sales_forecast_chart(result["forecast"]), use_container_width=True)
+    **Funcionalidades planificadas:**
+    - Selector de tienda y horizonte de pronóstico (7 / 15 / 30 días)
+    - Gráfico interactivo: histórico + predicción + intervalo de confianza
+    - Integración del sentimiento promedio como variable exógena
+    """)
 
-                import pandas as pd
-                df = pd.DataFrame(result["forecast"])
-                st.dataframe(df.style.format({"predicted_sales": "{:.0f}", "lower": "{:.0f}", "upper": "{:.0f}"}))
+    with st.expander("¿Cuándo estará disponible?"):
+        st.markdown("""
+        El módulo de ventas es **opcional** en esta entrega.
+        Si el equipo llega a la semana 5 o 6 con margen, se retomará con alcance reducido:
+        solo Prophet, sin XGBoost ni integración con sentimiento.
 
-            except Exception as e:
-                st.warning(f"Modelo no disponible aún: {e}")
-                st.info("Entrenó Prophet corriendo el notebook 04 en Colab y copiá el .joblib a models/sales_predictor/")
+        Para entrenarlo: correr el notebook `04_sales_predictor_prophet.ipynb` en Colab
+        y copiar el archivo `.joblib` a `models/sales_predictor/`.
+        """)

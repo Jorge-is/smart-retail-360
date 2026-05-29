@@ -1,14 +1,12 @@
 # SmartRetail 360
 
-Plataforma de inteligencia artificial para e-commerce que integra tres capacidades de IA en un dashboard unificado:
+Plataforma de inteligencia artificial para e-commerce que integra capacidades de IA en un dashboard unificado.
 
-| Módulo | Tecnología | Dataset |
-|--------|-----------|---------|
-| Clasificación de productos por imagen | EfficientNet-B0 (PyTorch) | Fashion Product Images (Kaggle) |
-| Análisis de sentimiento de reseñas | BETO + TF-IDF baseline | Amazon Reviews Multilingual (HF) |
-| Predicción de demanda / ventas | Prophet (Meta) | Rossmann Store Sales (Kaggle) |
-
-**Elemento integrador:** el sentimiento promedio de las reseñas se usa como variable exógena en la predicción de ventas.
+| Módulo | Estado | Tecnología | Dataset |
+|--------|--------|-----------|---------|
+| Clasificación de productos por imagen | Activo | EfficientNet-B0 + MobileNetV2 (TensorFlow) | Fashion Product Images (Kaggle) |
+| Análisis de sentimiento de reseñas | Activo | BETO + Random Forest | Amazon Reviews Multilingual (HF) |
+| Predicción de demanda / ventas | Opcional | Prophet (Meta) | Rossmann Store Sales (Kaggle) |
 
 ---
 
@@ -39,14 +37,22 @@ streamlit run app/app.py
 ## Estructura del proyecto
 
 ```
-smartretail360/
+smart-retail-360/
 ├── data/               # Datasets (en .gitignore si son grandes)
-├── models/             # Modelos serializados (.pt, .pkl, .joblib)
-├── notebooks/          # Notebooks de Colab para entrenamiento
+├── models/             # Modelos serializados (.keras, .pkl, .joblib)
+├── notebooks/          # Notebooks de Colab para EDA y entrenamiento
+│   ├── 00_eda_imagenes.ipynb
+│   ├── 00_eda_sentimiento.ipynb
+│   ├── 01_image_classifier_efficientnet.ipynb
+│   ├── 01_image_classifier_mobilenetv2.ipynb
+│   ├── 02_sentiment_baseline_randomforest.ipynb
+│   ├── 03_sentiment_beto_finetuning.ipynb
+│   └── 04_sales_predictor_prophet.ipynb  (opcional)
 ├── src/                # Código fuente modular
 │   ├── image_classifier/
 │   ├── sentiment_analyzer/
-│   ├── sales_predictor/
+│   ├── sales_predictor/  (placeholder opcional)
+│   ├── evaluation/       # Métricas y análisis de viabilidad compartidos
 │   ├── database/
 │   └── utils/
 ├── app/                # Dashboard Streamlit
@@ -58,18 +64,33 @@ smartretail360/
 
 ## Flujo de trabajo
 
-1. **Entrenamiento** → Correr los notebooks en Google Colab (GPU T4 gratuita)
-2. **Descargar modelos** → Guardar `.pt` / `.pkl` / `.joblib` en `models/`
-3. **Dashboard** → `streamlit run app/app.py`
+1. **EDA** → Correr `00_eda_*.ipynb` en Colab, documentar hallazgos
+2. **Entrenamiento** → Correr notebooks de entrenamiento en Colab (GPU T4 gratuita)
+3. **Descargar modelos** → Guardar `.keras` / `.pkl` en `models/`
+4. **Dashboard** → `streamlit run app/app.py`
 
 ## Métricas objetivo
 
-| Módulo | Métrica | Objetivo |
-|--------|---------|---------|
-| Clasificación imágenes | Accuracy test | ≥ 85% (5 clases) |
-| Sentimiento BETO | F1 macro | ≥ 0.80 |
-| Sentimiento TF-IDF | F1 macro | ≥ 0.70 |
-| Predicción ventas | MAPE | ≤ 15% |
+| Módulo | Modelo | Métrica | Objetivo |
+|--------|--------|---------|---------|
+| M1 — Clasificación imágenes | MobileNetV2 | Accuracy test | ≥ 78% |
+| M1 — Clasificación imágenes | EfficientNet-B0 | Accuracy test | ≥ 85% |
+| M2 — Sentimiento | Random Forest | F1 macro | ≥ 0.70 |
+| M2 — Sentimiento | BETO | F1 macro | ≥ 0.80 |
+
+Cada módulo entrega un **análisis de viabilidad** documentado usando `src/evaluation/viability.py`.
+
+## Cronograma (7 semanas)
+
+| Semana | Foco | Entregables |
+|--------|------|-------------|
+| 1 | Setup + EDA | Actualizar repo, ejecutar EDA, documentar hallazgos |
+| 2 | Modelos clásicos | MobileNetV2 (M1) + Random Forest (M2) con métricas |
+| 3 | Modelos avanzados | EfficientNet-B0 (M1) + BETO (M2) entrenados |
+| 4 | Evaluación rigurosa | Matrices de confusión, comparativas, análisis de viabilidad |
+| 5 | Dashboard integrado | Streamlit con EDA, M1, M2 y dashboard integrado |
+| 6 | Pulido + despliegue | Streamlit Cloud, video de respaldo, documentación |
+| 7 | Presentación | Ensayos, slides, demo final |
 
 ## Equipo
 

@@ -9,12 +9,19 @@ st.set_page_config(
 )
 
 with st.sidebar:
-    st.image("app/assets/logo.png") if __import__("pathlib").Path("app/assets/logo.png").exists() else st.title("🛍️ SmartRetail 360")
+    st.image("app/assets/logo.png") if __import__("pathlib").Path("app/assets/logo.png").exists() else st.title("SmartRetail 360")
 
     selected = option_menu(
         menu_title="Módulos",
-        options=["Inicio", "Clasificador de Productos", "Análisis de Sentimiento", "Predicción de Ventas", "Dashboard Integrado"],
-        icons=["house", "camera", "chat-dots", "graph-up-arrow", "speedometer2"],
+        options=[
+            "Inicio",
+            "EDA",
+            "Clasificador de Productos",
+            "Análisis de Sentimiento",
+            "Dashboard Integrado",
+            "Predicción de Ventas",
+        ],
+        icons=["house", "bar-chart", "camera", "chat-dots", "speedometer2", "graph-up-arrow"],
         default_index=0,
     )
 
@@ -26,20 +33,36 @@ if selected == "Inicio":
     st.subheader("Plataforma de IA para e-commerce")
 
     st.markdown("""
-    Bienvenido al dashboard unificado. Esta plataforma integra **tres módulos de inteligencia artificial**
+    Bienvenido al dashboard unificado. Esta plataforma integra módulos de inteligencia artificial
     para ayudar a tiendas online a tomar decisiones críticas.
     """)
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.info("**Clasificador de Productos**\nClasificación automática por imagen usando EfficientNet-B0.")
+        st.success(
+            "**Clasificador de Productos**  \n"
+            "EfficientNet-B0 y MobileNetV2 (TensorFlow).  \n"
+            "Clasifica imágenes de productos por categoría."
+        )
     with col2:
-        st.info("**Análisis de Sentimiento**\nAnálisis de reseñas de clientes con BETO (Spanish BERT).")
+        st.success(
+            "**Análisis de Sentimiento**  \n"
+            "BETO + Random Forest.  \n"
+            "Clasifica reseñas en positivo / neutro / negativo."
+        )
     with col3:
-        st.info("**Predicción de Ventas**\nPronostico de demanda con Prophet + sentimiento como variable exógena.")
+        st.warning(
+            "**Predicción de Ventas**  \n"
+            "Prophet (Meta).  \n"
+            "Modulo opcional — en desarrollo."
+        )
 
     st.divider()
     st.markdown("Usá el menú lateral para navegar entre módulos.")
+
+elif selected == "EDA":
+    from app.pages.eda import render
+    render()
 
 elif selected == "Clasificador de Productos":
     from app.pages.clasificador_productos import render
@@ -49,10 +72,10 @@ elif selected == "Análisis de Sentimiento":
     from app.pages.analisis_sentimiento import render
     render()
 
-elif selected == "Predicción de Ventas":
-    from app.pages.prediccion_ventas import render
-    render()
-
 elif selected == "Dashboard Integrado":
     from app.pages.dashboard_integrado import render
+    render()
+
+elif selected == "Predicción de Ventas":
+    from app.pages.prediccion_ventas import render
     render()

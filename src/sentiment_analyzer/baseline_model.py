@@ -1,7 +1,7 @@
-"""TF-IDF + Logistic Regression — baseline clásico."""
+"""TF-IDF + Random Forest — baseline clásico."""
 import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 
 from src.utils.config import SENTIMENT_TFIDF_MODEL_PATH
@@ -9,8 +9,8 @@ from src.utils.config import SENTIMENT_TFIDF_MODEL_PATH
 
 def build_pipeline() -> Pipeline:
     return Pipeline([
-        ("tfidf", TfidfVectorizer(max_features=50_000, ngram_range=(1, 2), sublinear_tf=True)),
-        ("clf", LogisticRegression(max_iter=1000, C=1.0, class_weight="balanced")),
+        ("tfidf", TfidfVectorizer(max_features=10_000, ngram_range=(1, 2))),
+        ("clf", RandomForestClassifier(n_estimators=200, class_weight="balanced", n_jobs=-1)),
     ])
 
 
