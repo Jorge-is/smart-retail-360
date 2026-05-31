@@ -15,48 +15,55 @@ pytest tests/test_sentiment_analyzer.py -k TestPreprocess  # clase específica
 
 # Entrenamiento (diseñado para correr en Google Colab, no local)
 python -m src.image_classifier.train
-python -m src.sales_predictor.train
+python -m src.sentiment_analyzer.train
 ```
 
 ## Architecture
 
-Three independent AI modules, each exposing a single `predict()` function. The Streamlit dashboard calls only those functions — it has no direct knowledge of PyTorch, Prophet, or scikit-learn.
+Two active AI modules (M1 + M2) plus one optional placeholder (M3), each exposing a single `predict()` function. The Streamlit dashboard calls only those functions — it has no direct knowledge of TensorFlow, scikit-learn, or Prophet.
 
 ### The predict() contract
 
 Every module exposes the same pattern in `src/<module>/predict.py`:
 
 ```python
-# image_classifier  →  predict(image: PIL.Image) -> dict
-# sentiment_analyzer →  predict(text: str) -> dict
-# sales_predictor    →  predict(store_id, horizon_days, sentiment_score) -> dict
+# image_classifier   →  predict(image: PIL.Image, model_name: str = "efficientnet") -> dict
+# sentiment_analyzer →  predict(text: str, model_name: str = "beto") -> dict
+# sales_predictor    →  predict(store_id, horizon_days, sentiment_score) -> dict  [optional/placeholder]
 ```
 
 Full I/O spec is in `docs/api_contracts.md`. This is the integration boundary — don't break it.
 
 ### Model loading
 
-All three modules use a module-level singleton (`_model = None`). Models load on the first `predict()` call. If the serialized file doesn't exist, the function raises — the Streamlit pages catch this and show a "model not available" message instead of crashing.
+All modules use a module-level singleton (`_model = None`). Models load on the first `predict()` call. If the serialized file doesn't exist, the function raises — the Streamlit pages catch this and show a "model not available" message instead of crashing.
 
 ### Module layout
 
 ```
 src/<module>/
     predict.py      ← only file the dashboard imports
-    model.py        ← architecture definition
     train.py        ← training script (runs in Colab)
     preprocess.py   ← transforms / text cleaning
+    eda.py          ← reusable EDA helpers (M1 and M2 only)
 ```
 
-`sentiment_analyzer` has two model backends (`baseline_model.py` = TF-IDF, `beto_model.py` = BETO). Switch at runtime with `set_mode("beto" | "tfidf")` before calling `predict()`.
+`image_classifier` has two model files: `model_efficientnet.py` (EfficientNet-B0, main model) and `model_mobilenetv2.py` (MobileNetV2, baseline). `train.py` accepts `--model efficientnet|mobilenetv2`.
+
+`sentiment_analyzer` has two model backends: `baseline_model.py` (Random Forest + TF-IDF) and `beto_model.py` (BETO). Select at call time via `predict(text, model_name="beto"|"random_forest")`.
+
+### Evaluation module
+
+`src/evaluation/` is a shared package used by both M1 and M2:
+- `metrics.py` — accuracy, precision, recall, F1
+- `confusion_matrix.py` — seaborn heatmap generation
+- `viability.py` — assesses whether a model meets production thresholds
 
 ### Streamlit app
 
 `app/app.py` is the single entry point. Pages live in `app/pages/` as modules with a `render()` function — the router in `app.py` calls `render()` after the `option_menu` selection. Shared UI lives in `app/components/`.
 
-### Sentiment → sales integration
-
-The key differentiator: `sales_predictor.predict(sentiment_score=<float>)` accepts the average positive score from `sentiment_analyzer` as an exogenous regressor for Prophet. This is documented in `docs/api_contracts.md` under "Integración sentimiento → ventas".
+M3 (sales predictor) page shows a "Módulo en desarrollo" placeholder — do not wire it to real model calls.
 
 ### Config
 
@@ -66,9 +73,10 @@ All paths and constants come from `src/utils/config.py`, which reads `.env` via 
 
 | Module | File | Format |
 |--------|------|--------|
-| image_classifier | `models/image_classifier/efficientnet_b0.pt` | `torch.save` state dict |
-| sentiment_analyzer | `models/sentiment_analyzer/tfidf_baseline.pkl` | joblib Pipeline |
+| image_classifier | `models/image_classifier/efficientnet_b0.keras` | Keras `model.save` |
+| image_classifier | `models/image_classifier/mobilenetv2.keras` | Keras `model.save` |
+| sentiment_analyzer | `models/sentiment_analyzer/tfidf_baseline.pkl` | joblib Pipeline (RandomForest) |
 | sentiment_analyzer | `models/sentiment_analyzer/beto_finetuned/` | HuggingFace `save_pretrained` |
-| sales_predictor | `models/sales_predictor/prophet_model.joblib` | joblib Prophet |
+| sales_predictor | `models/sales_predictor/prophet_model.joblib` | joblib Prophet (optional) |
 
 Models are in `.gitignore`. Train in Colab (notebooks in `notebooks/`) and copy the output files into `models/`.

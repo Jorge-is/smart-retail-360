@@ -95,3 +95,5 @@ Cada módulo entrega un **análisis de viabilidad** documentado usando `src/eval
 ## Equipo
 
 Proyecto Final — Curso de Inteligencia Artificial · 6 integrantes
+
+Ver roles, responsabilidades y cronograma detallado en [TEAM.md](TEAM.md).
