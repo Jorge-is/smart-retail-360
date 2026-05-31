@@ -5,7 +5,7 @@ Plataforma de inteligencia artificial para e-commerce que integra capacidades de
 | Módulo | Estado | Tecnología | Dataset |
 |--------|--------|-----------|---------|
 | Clasificación de productos por imagen | Activo | EfficientNet-B0 + MobileNetV2 (TensorFlow) | Fashion Product Images (Kaggle) |
-| Análisis de sentimiento de reseñas | Activo | BETO + Random Forest | Amazon Reviews Multilingual (HF) |
+| Análisis de sentimiento de reseñas | Activo | BETO + Random Forest | mteb/amazon_reviews_multi (HF) |
 | Predicción de demanda / ventas | Opcional | Prophet (Meta) | Rossmann Store Sales (Kaggle) |
 
 ---

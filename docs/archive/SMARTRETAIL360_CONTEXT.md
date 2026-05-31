@@ -130,15 +130,17 @@ El elemento que une los 3 módulos y eleva el proyecto: **usar el sentimiento pr
 
 ### Módulo 2 — Reseñas en español
 
-**Amazon Reviews Multilingual (config `es`)** — Hugging Face
+**mteb/amazon_reviews_multi (config `es`)** — Hugging Face
 
-- URL: `huggingface.co/datasets/amazon_reviews_multi`
+- URL: `huggingface.co/datasets/mteb/amazon_reviews_multi`
 - Tamaño: ~210k reseñas en español (train split)
 - Mapeo de etiquetas:
   - Rating 1–2 → negativo
   - Rating 3 → neutro
   - Rating 4–5 → positivo
-- Carga directa con `datasets.load_dataset("amazon_reviews_multi", "es")`
+- **Nota:** `amazon_reviews_multi` (original y mirrors) usa scripts incompatibles con `datasets >= 4.0`. Usar `mteb/amazon_reviews_multi` — mismo corpus, formato parquet nativo, sin script.
+- Diferencia de esquema: columnas `text` (→ `review_body`) y `label` 0–4 (→ `stars` 1–5). La adaptación está encapsulada en `to_polars()` (notebook) y `_load_dataset()` (`train.py`).
+- Carga: `load_dataset("mteb/amazon_reviews_multi", "es")`
 
 ### Módulo 3 — Series temporales
 

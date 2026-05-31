@@ -15,10 +15,21 @@ from src.utils.logging_config import get_logger
 
 logger = get_logger(__name__)
 
+# amazon_reviews_multi usa un script legacy incompatible con datasets >= 4.0.
+# mteb/amazon_reviews_multi es el mismo dataset en formato parquet nativo.
+# Renombramos aquí para que el resto del script no cambie.
+def _load_dataset():
+    raw = load_dataset("mteb/amazon_reviews_multi", "es")
+    return raw.rename_columns({"text": "review_body"}).map(
+        lambda batch: {"stars": [l + 1 for l in batch["label"]]},
+        batched=True,
+        remove_columns=["label", "id"],
+    )
+
 
 def train_baseline() -> None:
-    logger.info("Cargando amazon_reviews_multi (es)...")
-    ds = load_dataset("amazon_reviews_multi", "es")
+    logger.info("Cargando amazon_reviews_multi (es) via parquet...")
+    ds = _load_dataset()
 
     texts_train = [clean_text(r["review_body"]) for r in ds["train"]]
     labels_train = [rating_to_label(r["stars"]) for r in ds["train"]]
@@ -40,8 +51,8 @@ def train_beto(epochs: int = 3, batch_size: int = 16) -> None:
     import torch
     from transformers import DataCollatorWithPadding
 
-    logger.info("Cargando amazon_reviews_multi (es) para BETO...")
-    ds = load_dataset("amazon_reviews_multi", "es")
+    logger.info("Cargando amazon_reviews_multi (es) via parquet para BETO...")
+    ds = _load_dataset()
 
     model, tokenizer = build_model_for_training(num_labels=3)
 
