@@ -1,4 +1,3 @@
-import torch
 from src.sentiment_analyzer.preprocess import clean_text
 from src.utils.config import SENTIMENT_LABELS, DEVICE
 
@@ -62,6 +61,7 @@ def predict(text: str, model_name: str = "beto") -> dict:
 
 
 def _predict_beto(text: str) -> dict:
+    import torch
     model, tokenizer = _get_beto()
     device = torch.device(DEVICE)
     inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=256).to(device)
