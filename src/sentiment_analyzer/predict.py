@@ -1,5 +1,5 @@
 from src.sentiment_analyzer.preprocess import clean_text
-from src.utils.config import SENTIMENT_LABELS, DEVICE
+from src.utils.config import SENTIMENT_LABELS
 
 _mode = "beto"  # default — se puede cambiar con set_mode()
 _beto_model = None
@@ -61,18 +61,16 @@ def predict(text: str, model_name: str = "beto") -> dict:
 
 
 def _predict_beto(text: str) -> dict:
-    import torch
+    import tensorflow as tf
     model, tokenizer = _get_beto()
-    device = torch.device(DEVICE)
-    inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=256).to(device)
-    with torch.no_grad():
-        logits = model(**inputs).logits
-    probs = torch.softmax(logits, dim=1).squeeze()
-    label_idx = probs.argmax().item()
-    scores = {SENTIMENT_LABELS[i]: round(probs[i].item(), 4) for i in range(3)}
+    inputs = tokenizer(text, return_tensors="tf", truncation=True, max_length=256)
+    logits = model(**inputs).logits
+    probs = tf.nn.softmax(logits, axis=1).numpy()[0]
+    label_idx = int(probs.argmax())
+    scores = {SENTIMENT_LABELS[i]: round(float(probs[i]), 4) for i in range(3)}
     return {
         "sentiment": SENTIMENT_LABELS[label_idx],
-        "confidence": round(probs[label_idx].item(), 4),
+        "confidence": round(float(probs[label_idx]), 4),
         "scores": scores,
     }
 
