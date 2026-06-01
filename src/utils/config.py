@@ -12,7 +12,7 @@ DB_PATH = ROOT_DIR / os.getenv("DB_PATH", "data/smartretail.db")
 DEVICE = os.getenv("DEVICE", "cpu")
 SEED = int(os.getenv("SEED", 42))
 
-IMAGE_CLASSIFIER_MODEL_PATH = MODELS_DIR / "image_classifier" / "efficientnet_b0.pt"
+IMAGE_CLASSIFIER_MODEL_PATH = MODELS_DIR / "image_classifier" / "efficientnet_b0.keras"
 SENTIMENT_TFIDF_MODEL_PATH = MODELS_DIR / "sentiment_analyzer" / "tfidf_baseline.pkl"
 SENTIMENT_BETO_MODEL_PATH = MODELS_DIR / "sentiment_analyzer" / "beto_finetuned"
 SALES_PROPHET_MODEL_PATH = MODELS_DIR / "sales_predictor" / "prophet_model.joblib"
