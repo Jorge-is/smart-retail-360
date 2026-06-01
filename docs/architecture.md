@@ -21,7 +21,7 @@
         ▼            ▼              ▼
 ┌──────────────────────────────────────────────┐
 │             models/ (archivos)               │
-│  efficientnet_b0.pt  tfidf.pkl / beto/  prophet.joblib │
+│  efficientnet_b0.keras  tfidf.pkl / beto/  prophet.joblib │
 └──────────────────────────────────────────────┘
         │            │              │
         ▼            ▼              ▼
@@ -33,9 +33,9 @@
 
 ## Principios de diseño
 
-1. **API common**: cada módulo expone solo `predict()` al exterior. El dashboard no sabe nada de PyTorch ni Prophet.
+1. **API common**: cada módulo expone solo `predict()` al exterior. El dashboard no sabe nada de TensorFlow, scikit-learn ni Prophet.
 2. **Lazy loading**: los modelos se cargan en memoria solo cuando se llama `predict()` por primera vez (singleton).
-3. **Separación entrenamiento/inferencia**: los notebooks en Colab entrenan y guardan `.pt`/`.pkl`/`.joblib`. El dashboard solo hace inferencia.
+3. **Separación entrenamiento/inferencia**: los notebooks en Colab entrenan y guardan `.keras`/`.pkl`/`.joblib`. El dashboard solo hace inferencia.
 4. **Fallback graceful**: si el modelo no está disponible, el dashboard muestra un mensaje claro en lugar de crashear.
 
 ## Flujo de datos
@@ -43,7 +43,7 @@
 ```
 Google Colab (GPU)
     → entrenamiento con dataset
-    → torch.save / joblib.dump
+    → model.save() / joblib.dump
     → descarga manual → models/
 
 models/ → src/*/predict.py → app/ → SQLite (resultados guardados)

@@ -3,7 +3,6 @@ Entrenamiento de ambos modelos de sentimiento.
 Diseñado para correr en Google Colab (GPU T4).
 """
 from datasets import load_dataset
-from transformers import TrainingArguments, Trainer
 import numpy as np
 from sklearn.metrics import f1_score, classification_report
 
@@ -48,7 +47,7 @@ def train_baseline() -> None:
 
 
 def train_beto(epochs: int = 3, batch_size: int = 16) -> None:
-    import torch
+    import tensorflow as tf
     from transformers import DataCollatorWithPadding
 
     logger.info("Cargando amazon_reviews_multi (es) via parquet para BETO...")
@@ -68,35 +67,32 @@ def train_beto(epochs: int = 3, batch_size: int = 16) -> None:
 
     ds = ds.map(tokenize, batched=True).map(add_labels, batched=True)
 
-    def compute_metrics(eval_pred):
-        logits, labels = eval_pred
-        preds = np.argmax(logits, axis=1)
-        return {"f1_macro": f1_score(labels, preds, average="macro")}
+    data_collator = DataCollatorWithPadding(tokenizer=tokenizer, return_tensors="tf")
 
-    args = TrainingArguments(
-        output_dir=str(SENTIMENT_BETO_MODEL_PATH),
-        num_train_epochs=epochs,
-        per_device_train_batch_size=batch_size,
-        per_device_eval_batch_size=batch_size,
-        evaluation_strategy="epoch",
-        save_strategy="epoch",
-        load_best_model_at_end=True,
-        metric_for_best_model="f1_macro",
-        seed=SEED,
-        logging_steps=100,
-        report_to="none",
+    tf_train = ds["train"].to_tf_dataset(
+        columns=["input_ids", "attention_mask"],
+        label_cols=["labels"],
+        shuffle=True,
+        batch_size=batch_size,
+        collate_fn=data_collator,
+    )
+    tf_val = ds["validation"].to_tf_dataset(
+        columns=["input_ids", "attention_mask"],
+        label_cols=["labels"],
+        shuffle=False,
+        batch_size=batch_size * 2,
+        collate_fn=data_collator,
     )
 
-    trainer = Trainer(
-        model=model,
-        args=args,
-        train_dataset=ds["train"],
-        eval_dataset=ds["validation"],
-        data_collator=DataCollatorWithPadding(tokenizer),
-        compute_metrics=compute_metrics,
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(learning_rate=2e-5),
+        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+        metrics=["accuracy"],
     )
-    trainer.train()
-    trainer.save_model(str(SENTIMENT_BETO_MODEL_PATH))
+
+    model.fit(tf_train, validation_data=tf_val, epochs=epochs)
+
+    model.save_pretrained(str(SENTIMENT_BETO_MODEL_PATH))
     tokenizer.save_pretrained(str(SENTIMENT_BETO_MODEL_PATH))
     logger.info("BETO guardado en %s", SENTIMENT_BETO_MODEL_PATH)
 
