@@ -3,11 +3,11 @@ from streamlit_option_menu import option_menu
 import sys
 import os
 from pathlib import Path
-from modules.eda import render as render_eda
-from modules.clasificador_productos import render as render_clasificador
-from modules.analisis_sentimiento import render as render_sentimiento
-from modules.dashboard_integrado import render as render_dashboard
-from modules.prediccion_ventas import render as render_prediccion
+from pages.eda import render as render_eda
+from pages.clasificador_productos import render as render_clasificador
+from pages.analisis_sentimiento import render as render_sentimiento
+from pages.dashboard_integrado import render as render_dashboard
+from pages.prediccion_ventas import render as render_prediccion
 
 # Sistema de enrutamiento
 root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

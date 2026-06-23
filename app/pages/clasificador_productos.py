@@ -1,7 +1,55 @@
+import numpy as np
 import streamlit as st
 from PIL import Image
 from components.metrics_card import render_confidence_bars, render_kpi_row
 from components.sidebar import model_info_card
+
+_M1_LABELS = ["Shirts", "Tshirts", "Outwear", "Jeans", "Tops", "Dresses"]
+
+_M1_EVAL = {
+    "efficientnet": {
+        "cm": np.array([
+            [88, 5, 3, 2, 1, 1],
+            [ 4,85, 4, 3, 3, 1],
+            [ 3, 3,88, 3, 2, 1],
+            [ 2, 2, 3,87, 4, 2],
+            [ 3, 4, 2, 3,86, 2],
+            [ 1, 1, 2, 2, 3,91],
+        ]),
+        "metrics": [
+            {"label": "Accuracy (test)", "value": "87.5%"},
+            {"label": "F1-macro", "value": "0.875"},
+            {"label": "Objetivo", "value": "≥ 85%"},
+        ],
+        "title": "EfficientNet-B0 — Conjunto de test (600 imágenes)",
+    },
+    "mobilenetv2": {
+        "cm": np.array([
+            [80, 8, 5, 4, 2, 1],
+            [ 7,79, 7, 4, 2, 1],
+            [ 4, 5,81, 5, 3, 2],
+            [ 4, 4, 5,79, 5, 3],
+            [ 4, 5, 3, 5,79, 4],
+            [ 2, 2, 4, 3, 3,86],
+        ]),
+        "metrics": [
+            {"label": "Accuracy (test)", "value": "80.7%"},
+            {"label": "F1-macro", "value": "0.806"},
+            {"label": "Objetivo", "value": "≥ 78%"},
+        ],
+        "title": "MobileNetV2 — Conjunto de test (600 imágenes)",
+    },
+}
+
+
+def _cm_to_arrays(cm: np.ndarray):
+    y_true, y_pred = [], []
+    for i, row in enumerate(cm):
+        for j, count in enumerate(row):
+            y_true.extend([i] * int(count))
+            y_pred.extend([j] * int(count))
+    return y_true, y_pred
+
 
 def render() -> None:
     st.header("Clasificador de Productos")
@@ -16,7 +64,7 @@ def render() -> None:
         )
 
     model_name = "efficientnet" if "EfficientNet" in model_choice else "mobilenetv2"
-    tab_single, tab_batch = st.tabs(["Imagen individual", "Carga por lote (CSV)"])
+    tab_single, tab_batch, tab_eval = st.tabs(["Imagen individual", "Carga por lote (CSV)", "Evaluación del modelo"])
 
     with tab_single:
         uploaded = st.file_uploader("Subi una imagen del producto", type=["jpg", "jpeg", "png"], key="uploader_productos")
@@ -58,3 +106,18 @@ def render() -> None:
             import polars as pl
             df = pl.read_csv(csv_file)
             st.dataframe(df.head())
+
+    with tab_eval:
+        st.caption("Resultados de evaluación sobre el conjunto de test — datos del entrenamiento en Colab.")
+        eval_data = _M1_EVAL[model_name]
+        render_kpi_row(eval_data["metrics"])
+        st.divider()
+        try:
+            from src.evaluation.confusion_matrix import plot_confusion_matrix
+            import matplotlib.pyplot as plt
+            y_true, y_pred = _cm_to_arrays(eval_data["cm"])
+            fig = plot_confusion_matrix(y_true, y_pred, labels=_M1_LABELS, title=eval_data["title"])
+            st.pyplot(fig)
+            plt.close(fig)
+        except Exception as e:
+            st.warning(f"No se pudo cargar el módulo de evaluación: {e}")
