@@ -1,6 +1,6 @@
 # Informe de Avance — Equipo completo
 
-**Fecha:** 24/06/2026 — Semana 4 (20–26 Jun)  
+**Fecha:** 24/06/2026 — Semana 4 (20–26 Jun) · **Actualización Víctor:** 28/06/2026 — inicio Semana 5  
 **Evaluador:** Jorge Flores (líder del proyecto)  
 **Próximas fechas clave:** Segunda exposición 07/07/2026 · Entrega final 14/07/2026
 
@@ -15,7 +15,7 @@
 | César | M1 — MobileNetV2 | ~10% | ❌ Sin commits propios, modelo sin entrenar |
 | Ghinno | M2 — BETO fine-tuning | ~15% | ❌ Notebook sin ejecutar, modelo ausente |
 | Jeremy | Dashboard lead — routing + components | ~60% | ⚠️ Deploy pendiente, sin pruebas e2e |
-| Víctor | Dashboard — páginas y lógica | ~40% | ⚠️ EDA y dashboard integrado con datos falsos |
+| Víctor | Dashboard — páginas y lógica | ~55% 🆙 | ⚠️ Session state real implementado — KPIs y matrices con datos incorrectos/falsos |
 
 ---
 
@@ -130,20 +130,27 @@ Ningún entregable propio commiteado. `predict.py` ya soporta MobileNetV2 (imple
 
 ## Víctor — Dashboard: páginas y lógica de negocio
 
+> **Actualizado al 28/06/2026** — rama `cambios-victor`, commit `d219ab4`.
+
 ### Completado ✅
 
-| Página | Detalle |
-|--------|---------|
-| `clasificador_productos.py` | Funcional — carga de imagen, inferencia vía `predict()`, tab de evaluación con `src/evaluation/` (123 líneas) |
-| `analisis_sentimiento.py` | Funcional — input de texto, inferencia vía `predict()`, visualización de scores (114 líneas) |
+| Página / Feature | Detalle |
+|-----------------|---------|
+| `clasificador_productos.py` | Funcional — selector de modelo, carga de imagen, inferencia, feedback con `model_label`/`model_desc`, error handling diferenciado |
+| `analisis_sentimiento.py` | Funcional — selector BETO / RF, input de texto, scores, feedback visual, error handling diferenciado |
+| Session state cross-page | `last_image_prediction`, `last_sentiment_prediction`, `sentiment_counts`, `avg_sentiment` actualizados en tiempo real al predecir |
+| Dashboard donut conectado | Gráfico de sentimiento lee de `session_state["sentiment_counts"]` — ya no usa `[4118, 739, 423]` estático |
+| `eda.py` refactorizado | Estructura con secciones M1 y M2, placeholders explícitos vs datos falsos silenciosos (anterior) |
 
-### Pendiente ❌
+### Pendiente ❌ / Bugs activos ⚠️
 
 | Tarea | Semana | Detalle |
 |-------|--------|---------|
-| `eda.py` con datos reales | S5 | Datos completamente hardcodeados (`"Shirts": 1200`, `"Tshirts": 950`, etc.) — sin conexión a los hallazgos del EDA real |
-| `dashboard_integrado.py` con métricas reales | S4 / S5 | KPIs vienen de `session_state` pero el gráfico donut usa valores hardcodeados (`values=[4118, 739, 423]`); logs de sistema son estáticos |
-| Página M1 con selector MobileNetV2 operativo | Después de César | El selector existe pero MobileNetV2 lanza `FileNotFoundError` hasta que César entregue el modelo |
+| `eda.py` con datos reales | S5 — vence 03/07 | 4 secciones siguen siendo `st.info("🔄 Placeholder...")` — hallazgos de Anthony y Jorge disponibles en notebooks |
+| KPIs del dashboard con valores **incorrectos** | CRÍTICO — antes del deploy | EfficientNet: `"87.5%"` (real: **99.6%**); RF F1: `"0.7124"` (real: **0.6488**); RF Acc: `"72.8%"` (real: **73.84%**); BETO Acc: `"75.8%"` (real: **79%**) |
+| Bug `col2` duplicado en `dashboard_integrado.py` | CRÍTICO — layout roto | `col2` redefinido dentro del `try` de matrices — "Últimas Acciones" renderiza en columna incorrecta dependiendo del entorno |
+| Matrices de confusión con 6 clases y lógica incorrecta | Antes del deploy | Labels usan 6 clases ficticias (proyecto tiene 3); generación de `y_true`/`y_pred` produce siempre diagonal perfecta |
+| Página M1 con selector MobileNetV2 operativo | Después de César | Sin cambio — MobileNetV2 sigue lanzando `FileNotFoundError` |
 
 ---
 
@@ -153,10 +160,12 @@ Ningún entregable propio commiteado. `predict.py` ya soporta MobileNetV2 (imple
 Anthony  ████████░░  80%   ✅ Núcleo entregado — pendiente comparativa S4
 Jorge    ███████░░░  75%   ⚠️ Notebooks ejecutados — comparativa S4 bloqueada por Ghinno
 César    █░░░░░░░░░  10%   ❌ CRÍTICO — modelo MobileNetV2 sin entrenar
-Ghinno   ██░░░░░░░░  15%   ❌ CRÍTICO — modelo BETO sin commitear, meta no alcanzada
+Ghinno   █████░░░░░  50%   ⚠️ Notebook con outputs entregado tardío — análisis errores y viabilidad pendientes
 Jeremy   ██████░░░░  60%   ⚠️ Deploy y pruebas e2e pendientes (S5)
-Víctor   ████░░░░░░  40%   ⚠️ EDA y dashboard integrado con datos placeholder
+Víctor   █████░░░░░  55%   ⚠️ Session state real — KPIs incorrectos y matrices con datos falsos (bugs críticos)
 ```
+
+> Semáforo actualizado al 28/06/2026. Ghinno y Víctor actualizados con commits de la rama respectiva.
 
 ## Acciones críticas antes del 26/06 (2 días)
 
