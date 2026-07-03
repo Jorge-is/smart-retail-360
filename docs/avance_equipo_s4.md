@@ -10,9 +10,9 @@
 
 | Integrante | Rol | Cumplimiento S1–S4 | Estado |
 |------------|-----|--------------------|--------|
-| Anthony | M1 lead — EfficientNet-B0 | ~80% | ⚠️ S4 bloqueada por César |
+| Anthony | M1 lead — EfficientNet-B0 | ~90% 🆙 | ⚠️ Ya no bloqueado — código de evaluación y tiempo de inferencia listo, falta ejecutarlo en Colab |
 | Jorge | M2 lead — RF + contratos + arquitectura | ~75% | ⚠️ Notebooks ejecutados — comparativa pendiente de Ghinno |
-| César | M1 — MobileNetV2 | ~50% 🆙 | ⚠️ Modelo entrenado y commiteado (94% Fase 1), bug de clases corregido, comparativa escrita — fine-tuning y evaluación con `src/evaluation/` siguen pendientes; ver nota de autoría |
+| César | M1 — MobileNetV2 | ~70% 🆙 | ⚠️ Modelo Fase 1 entrenado y commiteado (94%), bug de clases corregido, comparativa escrita, código de Fase 2 + `src/evaluation/` + tiempo de inferencia listo — falta ejecutarlo en Colab; ver nota de autoría |
 | Ghinno | M2 — BETO fine-tuning | ~15% | ❌ Notebook sin ejecutar, modelo ausente |
 | Jeremy | Dashboard lead — routing + components | ~60% | ⚠️ Deploy pendiente, sin pruebas e2e |
 | Víctor | Dashboard — páginas y lógica | ~55% 🆙 | ⚠️ Session state real implementado — KPIs y matrices con datos incorrectos/falsos |
@@ -37,7 +37,8 @@
 
 | Tarea | Semana | Bloqueo |
 |-------|--------|---------|
-| Comparativa MobileNetV2 vs EfficientNet (métricas, matrices, tiempo de inferencia) | S4 — vencida 26/06 | Ya no bloqueada — `mobilenetv2.keras` disponible desde el 01/07 — pero pendiente de escribir |
+| Comparativa MobileNetV2 vs EfficientNet (métricas, matrices, tiempo de inferencia) | S4 — vencida 26/06 | **Escrita 02/07/2026** en ambos notebooks — pendiente de refrescar con números reales una vez se ejecute Fase 2 (César) y la celda de evaluación (Anthony) |
+| Ejecutar la celda de evaluación con `src/evaluation/` en Colab | S3 (vencida) | Nunca se ejecutó — código ya tiene medición de tiempo de inferencia agregada, solo falta correrlo |
 | Limpiar 7 TODOs residuales del notebook EDA | Antes del 07/07 | No bloqueante |
 | Reformatear conclusiones del EDA (sacar del bloque de código Markdown) | Antes del 07/07 | No bloqueante |
 
@@ -81,23 +82,28 @@
 | Data augmentation | `RandomFlip`, `RandomRotation`, `RandomBrightness` (igual que EfficientNet) |
 | Integración en `predict.py` | Ya soportado (`_MODEL_PATHS["mobilenetv2"]`, implementado por Jorge) — ahora con archivo real detrás, deja de lanzar `FileNotFoundError` |
 | Bug de mapeo de clases (`IMAGE_CLASSES`) | **Corregido 02/07/2026** — ver nota abajo |
-| Comparativa MobileNetV2 vs EfficientNet | **Escrita 02/07/2026** — sección 8 agregada al notebook, con métricas reales de ambos modelos y análisis de viabilidad |
+| Comparativa MobileNetV2 vs EfficientNet | **Escrita 02/07/2026** — sección 8 en el notebook de César + sección espejo en el de Anthony (TEAM.md pide la sección en ambos), con métricas reales |
+| Fine-tuning completo (Fase 2) — **código** | **Preparado 02/07/2026** — celdas 14–15 descomentadas y corregidas (antes eran texto muerto) |
+| Integrar `src/evaluation/` en el notebook — **código** | **Migrado 02/07/2026** — la celda de evaluación ahora usa `compute_metrics`/`plot_confusion_matrix`/`assess_viability` en vez de sklearn directo; se eliminó la celda 19 duplicada y el hack de `shutil.copy` que saltaba la Fase 2 |
+| Medición de tiempo de inferencia — **código** | **Agregado 02/07/2026** — en ambos notebooks (MobileNetV2 y EfficientNet), con `time.perf_counter()` alrededor de `model.predict()` |
 
 ### Pendiente ❌ / Desviaciones ⚠️
 
 | Tarea | Semana | Detalle |
 |-------|--------|---------|
-| Fine-tuning completo (Fase 2) | S2 (vencida) | Celdas 14–15 del notebook están comentadas (`# for layer in model.layers: layer.trainable = True ...`) — nunca se ejecutaron. El resultado de 93.83% es **solo Fase 1** (cabeza), no el entrenamiento "head + fine-tuning" que pide TEAM.md. Sigue pendiente de correr en Colab |
-| Integrar `src/evaluation/` en el notebook | S2 (vencida) | El TODO original desapareció, pero **no fue reemplazado** — la evaluación (celda 18) usa `sklearn.metrics.classification_report`/`confusion_matrix` directo, no `compute_metrics`/`plot_confusion_matrix` compartidos. Además queda una celda 19 duplicada y sin ejecutar (código muerto). No se tocó esta sesión — requiere ejecución en Colab para validar que el output no cambie |
-| Medir tiempo de inferencia | S4 | Ni el notebook de MobileNetV2 ni el de EfficientNet miden latencia — dato pedido por TEAM.md para la comparativa de S4, señalado en la nueva sección 8 pero sin resolver |
+| Ejecutar Fase 2 + evaluación en Colab (MobileNetV2) | S2/S4 (vencidas) | El código ya está listo y corregido (ver arriba), pero **nadie lo corrió todavía** — no hay TensorFlow ni el dataset disponibles fuera de Colab para ejecutarlo. Los números de accuracy/F1 por clase que circulan (93.83%, solo Fase 1) van a cambiar una vez se corra Fase 2 |
+| Ejecutar evaluación en Colab (EfficientNet) | S3 (vencida) | La celda de `src/evaluation/` nunca se había ejecutado; ahora tiene también medición de tiempo de inferencia, pero sigue sin correrse — falta que Anthony la ejecute para tener el reporte y la matriz de confusión reales |
+| Confirmar tiempo de inferencia real | S4 | El código ya mide latencia en ambos notebooks, pero el dato en sí no existe hasta que se ejecuten |
 
 > **Nota sobre autoría:** el trabajo de entrenamiento (Fase 1) es de César; el commit `63d5c38` fue ejecutado/subido por Anthony (firmado con su identity de Git `XCypherXx <anthonycondori25@gmail.com>`, la misma que usa en sus commits de EfficientNet `137a2b5`) — probablemente porque corrieron el Colab desde la cuenta de Anthony. El avance se acredita a César; queda como nota de proceso para que a futuro cada quien commitee desde su propia identidad de Git.
 >
-> **Bug crítico corregido (config.py):** `src/utils/config.py` tenía `IMAGE_CLASSES = ["Apparel", "Footwear", "Accessories"]`, pero `image_dataset_from_directory` (usado en `train.py` y en ambos notebooks) asigna índices por orden **alfabético de carpeta** (`Accessories=0, Apparel=1, Footwear=2`, confirmado en la celda 7 del notebook: `Clases: train_ds.class_names`). Como `predict.py` mapea `IMAGE_CLASSES[i]` al índice `i` de salida del modelo, las etiquetas devueltas estaban **cruzadas**. **Corregido** el 02/07/2026 reordenando `IMAGE_CLASSES = ["Accessories", "Apparel", "Footwear"]` — no requiere reentrenar ningún modelo, ambos ya usaban ese orden internamente.
+> **Bug crítico corregido (config.py):** `src/utils/config.py` tenía `IMAGE_CLASSES = ["Apparel", "Footwear", "Accessories"]`, pero `image_dataset_from_directory` (usado en `train.py` y en ambos notebooks) asigna índices por orden **alfabético de carpeta** (`Accessories=0, Apparel=1, Footwear=2`, confirmado en la celda 7 del notebook: `Clases: train_ds.class_names`). Como `predict.py` mapea `IMAGE_CLASSES[i]` al índice `i` de salida del modelo, las etiquetas devueltas estaban **cruzadas**. **Corregido** el 02/07/2026 reordenando `IMAGE_CLASSES = ["Accessories", "Apparel", "Footwear"]` — no requiere reentrenar ningún modelo, ambos ya usaban ese orden internamente. Verificado corriendo `tests/test_image_classifier.py` (16/16 tests OK) contra los modelos `.keras` reales.
 >
-> **Segundo hallazgo del mismo bug (notebook EfficientNet):** al armar la comparativa se encontró que `notebooks/01_image_classifier_efficientnet.ipynb` (de Anthony, en `main`) tenía el mismo error pero hardcodeado localmente (`VALID_CLASSES = ["Apparel", "Footwear", "Accessories"]` en la celda de evaluación), independiente de `config.py` — el fix de arriba no lo cubría. El accuracy global (99.6%) no cambia porque es agregado, pero el desglose por clase estaba cruzado: los soportes (1694/3209/1383) coincidían exactamente entre el reporte de MobileNetV2 (bien etiquetado) y el de EfficientNet (mal etiquetado), lo que confirmó el mismo bug. **Corregido** el 02/07/2026: la celda ahora deriva `VALID_CLASSES` de `test_ds.class_names` (igual que hace este notebook) en vez de hardcodearlo, y se recalcularon a mano las cifras por clase de la celda de resultado. La celda de evaluación con `src/evaluation/` nunca se había ejecutado (sin output), así que no hay salida vieja que corregir ahí — falta que Anthony la corra en Colab para tener el reporte y la matriz de confusión reales.
+> **Segundo hallazgo del mismo bug (notebook EfficientNet):** al armar la comparativa se encontró que `notebooks/01_image_classifier_efficientnet.ipynb` (de Anthony) tenía el mismo error pero hardcodeado localmente (`VALID_CLASSES = ["Apparel", "Footwear", "Accessories"]` en la celda de evaluación), independiente de `config.py`. El accuracy global (99.6%) no cambia porque es agregado, pero el desglose por clase estaba cruzado: los soportes (1694/3209/1383) coincidían exactamente entre el reporte de MobileNetV2 (bien etiquetado) y el de EfficientNet (mal etiquetado). **Corregido**: la celda ahora deriva `VALID_CLASSES` de `test_ds.class_names`.
 >
-> **Situación:** el bloqueo original (modelo sin entrenar) está resuelto, el bug de clases está corregido en ambos módulos y la comparativa ya está escrita con datos reales. Sigue pendiente: Fase 2 de fine-tuning de MobileNetV2, integración de `src/evaluation/` en su notebook, y medir tiempo de inferencia en ambos modelos.
+> **Restructuración del notebook de MobileNetV2 (02/07/2026):** al descomentar la Fase 2 se detectó un problema de orden — la evaluación (sección 6) leía el modelo desde `mobilenetv2.keras`, pero el guardado "oficial" solo pasaba en la sección 7, *después* de la evaluación. El notebook original resolvía esto con un `shutil.copy` que copiaba el checkpoint de Fase 1 al path final antes de evaluar — es decir, **siempre evaluaba Fase 1, nunca Fase 2**, aunque la Fase 2 se llegara a ejecutar. Se corrigió moviendo el guardado real al final de la Fase 2 (antes de evaluar) y la sección 7 ahora solo confirma que el archivo existe, en vez de re-guardarlo.
+>
+> **Código listo, ejecución pendiente:** todo el código de esta sesión (Fase 2, migración a `src/evaluation/`, medición de tiempo de inferencia, comparativa en ambos notebooks) pasó chequeo de sintaxis y los 16 tests de la suite siguen en verde, pero **nada de esto se ejecutó contra el dataset real** — no hay TensorFlow ni `data/processed/fashion_products/` disponibles fuera de Colab. A César y Anthony solo les queda correr sus respectivos notebooks de punta a punta en Colab; no deberían necesitar escribir código nuevo.
 
 ---
 
@@ -172,21 +178,21 @@
 ## Semáforo general — Semana 4
 
 ```
-Anthony  ████████░░  80%   ✅ Núcleo entregado — falta correr evaluación con src/evaluation/ y medir inferencia
+Anthony  █████████░  90%   🆙 Código listo (evaluación + tiempo de inferencia) — falta correrlo en Colab
 Jorge    ███████░░░  75%   ⚠️ Notebooks ejecutados — comparativa S4 bloqueada por Ghinno
-César    █████░░░░░  50%   🆙 Modelo entrenado (94% Fase 1), bug de IMAGE_CLASSES corregido, comparativa escrita — falta Fase 2 y evaluación compartida
+César    ███████░░░  70%   🆙 Código completo (Fase 2, src/evaluation/, comparativa, tiempo de inferencia) — falta correrlo en Colab
 Ghinno   █████░░░░░  50%   ⚠️ Notebook con outputs entregado tardío — análisis errores y viabilidad pendientes
 Jeremy   ██████░░░░  60%   ⚠️ Deploy y pruebas e2e pendientes (S5)
 Víctor   █████░░░░░  55%   ⚠️ Session state real — KPIs incorrectos y matrices con datos falsos (bugs críticos)
 ```
 
-> Semáforo actualizado al 02/07/2026. César actualizado con el commit `63d5c38` de la rama `module/m1-cesar` + correcciones de esta sesión.
+> Semáforo actualizado al 02/07/2026. César y Anthony actualizados con las correcciones y el código preparado en esta sesión — ninguno de los dos requiere escribir código nuevo, solo ejecutar en Colab.
 
 ## Acciones críticas — actualizadas al 02/07/2026
 
-1. **César** → ejecutar Fase 2 (fine-tuning completo, celdas 14–15 comentadas) e integrar `src/evaluation/` en el notebook en lugar de sklearn directo
-2. **Anthony** → correr en Colab la celda de evaluación con `src/evaluation/` (nunca se ejecutó) para tener el reporte y la matriz de confusión reales, ahora que `VALID_CLASSES` está corregido
-3. **Anthony + César** → medir tiempo de inferencia de ambos modelos, dato que la comparativa dejó marcado como faltante
+1. **César** → correr `01_image_classifier_mobilenetv2.ipynb` completo en Colab (Fase 1 ya la corrió; falta Fase 2 + evaluación con `src/evaluation/` + tiempo de inferencia, todo con código ya listo) y commitear el `mobilenetv2.keras` final
+2. **Anthony** → correr la celda de evaluación de `01_image_classifier_efficientnet.ipynb` en Colab (nunca se ejecutó) para tener el reporte real, la matriz de confusión y el tiempo de inferencia
+3. **Anthony + César** → una vez ejecutados ambos notebooks, actualizar la tabla de la comparativa (sección 8 en el notebook de César, sección espejo en el de Anthony) con los números reales — hoy tiene los últimos valores conocidos, marcados como pendientes de refresco
 4. **Ghinno** → ejecutar `03_sentiment_beto_finetuning.ipynb` en Colab y commitear `beto_finetuned/`
 5. **Víctor** → probar el selector MobileNetV2 en la página M1 ahora que el modelo existe y el bug de `IMAGE_CLASSES` está corregido
 
