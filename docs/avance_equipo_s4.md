@@ -11,7 +11,7 @@
 | Integrante | Rol | Cumplimiento S1–S4 | Estado |
 |------------|-----|--------------------|--------|
 | Anthony | M1 lead — EfficientNet-B0 | ~90% 🆙 | ⚠️ Ya no bloqueado — código de evaluación y tiempo de inferencia listo, falta ejecutarlo en Colab |
-| Jorge | M2 lead — RF + contratos + arquitectura | ~75% | ⚠️ Notebooks ejecutados — comparativa pendiente de Ghinno |
+| Jorge | M2 lead — RF + contratos + arquitectura | ~85% 🆙 | ✅ Comparativa RF vs BETO agregada en ambos notebooks (04/07) — sin pendientes propios |
 | César | M1 — MobileNetV2 | ~70% 🆙 | ⚠️ Modelo Fase 1 entrenado y commiteado (94%), bug de clases corregido, comparativa escrita, código de Fase 2 + `src/evaluation/` + tiempo de inferencia listo — falta ejecutarlo en Colab; ver nota de autoría |
 | Ghinno | M2 — BETO fine-tuning | ~70% 🆙 | ⚠️ Modelo entrenado, copiado e integrado (predict() operativo) — integración la hizo Jorge, no Ghinno; análisis de errores aún sin re-ejecutar |
 | Jeremy | Dashboard lead — routing + components | ~60% | ⚠️ Deploy pendiente, sin pruebas e2e |
@@ -59,12 +59,11 @@
 | EDA Amazon Reviews | `notebooks/00_eda_sentimiento.ipynb` ejecutado en Colab — 11/11 celdas con output, commiteado |
 | Notebook Random Forest | `notebooks/02_sentiment_baseline_randomforest.ipynb` ejecutado en Colab — 9/10 celdas con output, commiteado |
 | `tfidf_baseline.pkl` | Generado y disponible localmente (1.9 GB — no se versiona por tamaño, excluido en `.gitignore`) |
+| Comparativa RF vs BETO (sección en notebook) | **Agregada 04/07/2026** — sección "Comparativa Random Forest vs BETO" en ambos notebooks (`02_sentiment_baseline_randomforest.ipynb` sección 10, `03_sentiment_beto_finetuning.ipynb`), con tabla de métricas real (RF 0.6488 vs BETO 0.7475 F1-macro) y celda ejecutada con output real |
 
 ### Pendiente ❌
 
-| Tarea | Semana | Detalle |
-|-------|--------|---------|
-| Comparativa RF vs BETO (sección en notebook) | S4 — vence 26/06 | Bloqueado hasta que Ghinno entregue `beto_finetuned/` y su notebook con outputs |
+Sin pendientes propios — el último ítem (comparativa en notebook) se destrababa con la entrega de Ghinno y quedó cerrado el mismo día que se integró el modelo BETO.
 
 ---
 
@@ -124,9 +123,9 @@
 | Tarea | Semana | Detalle |
 |-------|--------|---------|
 | Alcanzar meta F1-macro ≥ 0.80 | S3 | F1-macro reportado: **0.7475** — no supera la meta. La clase Neutro sigue arrastrando el promedio. Diagnóstico de "límite estructural ~0.747" respaldado por tabla de métricas por época real |
-| Comparativa RF vs BETO en el notebook (sección, no solo `.md`) | S4 — vence 26/06 | El `.md` existe pero el notebook no tiene esta sección integrada; el `.md` además sigue con el número viejo (0.7455) |
-| Re-ejecutar celda de análisis de errores, filtrada por clase Neutro | Antes del 07/07 | El código ya funcionó una vez (`f45b94f`) pero no está ejecutado en el HEAD actual; falta enfocarlo en `real == 'neutro'` |
-| Commit del modelo integrado y de los fixes en `src/sentiment_analyzer/` | Antes del 07/07 | `beto_model.py`, `predict.py` y `requirements.txt` fueron corregidos por Jorge (ver nota abajo) y siguen sin commitear |
+| ~~Comparativa RF vs BETO en el notebook~~ | ~~S4~~ | **Resuelto 04/07/2026 — por Jorge, no por Ghinno.** Sección agregada en ambos notebooks con la tabla real |
+| ~~Re-ejecutar celda de análisis de errores, filtrada por clase Neutro~~ | ~~Antes del 07/07~~ | **Resuelto** — Ghinno la re-ejecutó en Colab, ya filtrada por `real == 'neutro'` (382 errores encontrados) |
+| ~~Commit del modelo integrado y de los fixes en `src/sentiment_analyzer/`~~ | ~~Antes del 07/07~~ | **Resuelto** — `beto_model.py`, `predict.py`, `requirements.txt` y el notebook ya están commiteados y mergeados a `main` |
 
 > **Dos bugs de integración encontrados y corregidos por Jorge (no por Ghinno) al copiar el modelo:** (1) `requirements.txt` pedía `transformers>=4.35`, que hoy resuelve a la v5 — versión que **eliminó el soporte de TensorFlow** por completo, rompiendo el import de `TFAutoModelForSequenceClassification` en `beto_model.py`. (2) La notebook de Ghinno entrena con `AutoModelForSequenceClassification` + `Trainer` de **PyTorch**, no TensorFlow, así que aunque el import funcionara, los pesos no coincidían con el framework esperado. Se migró `beto_model.py` y `predict.py` a PyTorch y se agregó `torch>=2.2` a `requirements.txt`. Esto no es contribución de Ghinno — sigue en cero su commit history sobre `src/sentiment_analyzer/`.
 >
@@ -186,9 +185,9 @@
 
 ```
 Anthony  █████████░  90%   🆙 Código listo (evaluación + tiempo de inferencia) — falta correrlo en Colab
-Jorge    ███████░░░  75%   ⚠️ Notebooks ejecutados — comparativa S4 bloqueada por Ghinno
+Jorge    ████████░░  85%   🆙 Comparativa RF vs BETO en ambos notebooks — sin pendientes propios
 César    ███████░░░  70%   🆙 Código completo (Fase 2, src/evaluation/, comparativa, tiempo de inferencia) — falta correrlo en Colab
-Ghinno   ███████░░░  70%   🆙 Modelo integrado y predict() operativo — análisis de errores y comparativa en notebook pendientes
+Ghinno   ████████░░  80%   🆙 Modelo integrado y análisis de errores re-ejecutado — cero contribución propia a src/ sigue abierto
 Jeremy   ██████░░░░  60%   ⚠️ Deploy y pruebas e2e pendientes (S5)
 Víctor   █████░░░░░  55%   ⚠️ Session state real — KPIs incorrectos y matrices con datos falsos (bugs críticos)
 ```
@@ -200,7 +199,7 @@ Víctor   █████░░░░░  55%   ⚠️ Session state real — KP
 1. **César** → correr `01_image_classifier_mobilenetv2.ipynb` completo en Colab (Fase 1 ya la corrió; falta Fase 2 + evaluación con `src/evaluation/` + tiempo de inferencia, todo con código ya listo) y commitear el `mobilenetv2.keras` final
 2. **Anthony** → correr la celda de evaluación de `01_image_classifier_efficientnet.ipynb` en Colab (nunca se ejecutó) para tener el reporte real, la matriz de confusión y el tiempo de inferencia
 3. **Anthony + César** → una vez ejecutados ambos notebooks, actualizar la tabla de la comparativa (sección 8 en el notebook de César, sección espejo en el de Anthony) con los números reales — hoy tiene los últimos valores conocidos, marcados como pendientes de refresco
-4. **Ghinno** → re-ejecutar la celda de análisis de errores filtrada por clase Neutro y actualizar `docs/m2_comparativa_beto_vs_rf.md` con el resultado de 0.7475 (el modelo ya está integrado, esto es lo único que falta del lado de Ghinno)
+4. ~~**Ghinno** → re-ejecutar la celda de análisis de errores filtrada por clase Neutro~~ → **Resuelto 04/07** (382 errores de clase Neutro encontrados)
 5. **Víctor** → probar el selector MobileNetV2 en la página M1 ahora que el modelo existe y el bug de `IMAGE_CLASSES` está corregido
 
-El bloqueo de integración de Ghinno quedó resuelto — el modelo BETO ya corre en `predict()`. Los pendientes que restan (análisis de errores, comparativa actualizada) no bloquean al resto del equipo.
+El bloqueo de integración de Ghinno quedó resuelto — el modelo BETO ya corre en `predict()`, y la comparativa RF vs BETO ya está en ambos notebooks (`02` y `03`). M2 está funcionalmente cerrado salvo la meta de F1-macro ≥ 0.80 (no alcanzada, documentada como límite estructural) y la falta de contribución de Ghinno al código fuente.
