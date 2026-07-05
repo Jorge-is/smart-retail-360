@@ -18,7 +18,7 @@ SENTIMENT_BETO_MODEL_PATH = MODELS_DIR / "sentiment_analyzer" / "beto_finetuned"
 SALES_PROPHET_MODEL_PATH = MODELS_DIR / "sales_predictor" / "prophet_model.joblib"
 
 IMAGE_SIZE = (224, 224)
-IMAGE_CLASSES = ["Apparel", "Footwear", "Accessories"]
+IMAGE_CLASSES = ["Accessories", "Apparel", "Footwear"]
 
 SENTIMENT_LABELS = {0: "negative", 1: "neutral", 2: "positive"}
 BETO_MODEL_NAME = "dccuchile/bert-base-spanish-wwm-uncased"

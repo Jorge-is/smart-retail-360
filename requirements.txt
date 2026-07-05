@@ -4,8 +4,9 @@ polars>=0.20          # Reemplaza pandas como motor principal
 pandas>=2.0           # Mantener — Prophet y otras librerías lo requieren
 scikit-learn>=1.3
 
-# Deep Learning (TensorFlow)
-tensorflow>=2.15
+# Deep Learning
+tensorflow>=2.15    # image_classifier (EfficientNet/MobileNetV2)
+torch>=2.2          # sentiment_analyzer BETO (transformers v5 es PyTorch-only)
 transformers>=4.35
 datasets>=2.14
 

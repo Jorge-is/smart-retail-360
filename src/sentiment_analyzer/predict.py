@@ -61,11 +61,12 @@ def predict(text: str, model_name: str = "beto") -> dict:
 
 
 def _predict_beto(text: str) -> dict:
-    import tensorflow as tf
+    import torch
     model, tokenizer = _get_beto()
-    inputs = tokenizer(text, return_tensors="tf", truncation=True, max_length=256)
-    logits = model(**inputs).logits
-    probs = tf.nn.softmax(logits, axis=1).numpy()[0]
+    inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=256)
+    with torch.no_grad():
+        logits = model(**inputs).logits
+    probs = torch.nn.functional.softmax(logits, dim=1).numpy()[0]
     label_idx = int(probs.argmax())
     scores = {SENTIMENT_LABELS[i]: round(float(probs[i]), 4) for i in range(3)}
     return {
