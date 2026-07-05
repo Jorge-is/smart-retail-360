@@ -15,7 +15,7 @@
 | César | M1 — MobileNetV2 | ~70% 🆙 | ⚠️ Modelo Fase 1 entrenado y commiteado (94%), bug de clases corregido, comparativa escrita, código de Fase 2 + `src/evaluation/` + tiempo de inferencia listo — falta ejecutarlo en Colab; ver nota de autoría |
 | Ghinno | M2 — BETO fine-tuning | ~70% 🆙 | ⚠️ Modelo entrenado, copiado e integrado (predict() operativo) — integración la hizo Jorge, no Ghinno; análisis de errores aún sin re-ejecutar |
 | Jeremy | Dashboard lead — routing + components | ~60% | ⚠️ Deploy pendiente, sin pruebas e2e |
-| Víctor | Dashboard — páginas y lógica | ~55% 🆙 | ⚠️ Session state real implementado — KPIs y matrices con datos incorrectos/falsos |
+| Víctor | Dashboard — páginas y lógica | ~70% 🆙 | ✅ KPIs y matrices corregidas, EDA con datos reales |
 
 ---
 
@@ -157,7 +157,7 @@ Sin pendientes propios — el último ítem (comparativa en notebook) se destrab
 
 ## Víctor — Dashboard: páginas y lógica de negocio
 
-> **Actualizado al 28/06/2026** — rama `cambios-victor`, commit `d219ab4`.
+> **Actualizado al 05/07/2026** — rama `main`, todas las páginas funcionales.
 
 ### Completado ✅
 
@@ -169,15 +169,12 @@ Sin pendientes propios — el último ítem (comparativa en notebook) se destrab
 | Dashboard donut conectado | Gráfico de sentimiento lee de `session_state["sentiment_counts"]` — ya no usa `[4118, 739, 423]` estático |
 | `eda.py` refactorizado | Estructura con secciones M1 y M2, placeholders explícitos vs datos falsos silenciosos (anterior) |
 
-### Pendiente ❌ / Bugs activos ⚠️
+### Pendiente ❌
 
-| Tarea | Semana | Detalle |
-|-------|--------|---------|
-| `eda.py` con datos reales | S5 — vence 03/07 | 4 secciones siguen siendo `st.info("🔄 Placeholder...")` — hallazgos de Anthony y Jorge disponibles en notebooks |
-| KPIs del dashboard con valores **incorrectos** | CRÍTICO — antes del deploy | EfficientNet: `"87.5%"` (real: **99.6%**); RF F1: `"0.7124"` (real: **0.6488**); RF Acc: `"72.8%"` (real: **73.84%**); BETO Acc: `"75.8%"` (real: **79%**) |
-| Bug `col2` duplicado en `dashboard_integrado.py` | CRÍTICO — layout roto | `col2` redefinido dentro del `try` de matrices — "Últimas Acciones" renderiza en columna incorrecta dependiendo del entorno |
-| Matrices de confusión con 6 clases y lógica incorrecta | Antes del deploy | Labels usan 6 clases ficticias (proyecto tiene 3); generación de `y_true`/`y_pred` produce siempre diagonal perfecta |
-| Página M1 con selector MobileNetV2 operativo | Después de César | Desbloqueado desde el 01/07 (`mobilenetv2.keras` ya existe) — falta que Víctor lo pruebe en la página; ojo con el posible bug de `IMAGE_CLASSES` (ver sección de César) |
+| Tarea | Detalle |
+|-------|---------|
+| Prueba end-to-end con modelos BETO | Esperar a que se regenere `beto_finetuned/` en Colab y se copie a `models/sentiment_analyzer/` |
+| `tfidf_baseline.pkl` | Ya existe localmente (1.9 GB) — no requiere acción |
 
 ---
 
@@ -189,17 +186,20 @@ Jorge    ████████░░  85%   🆙 Comparativa RF vs BETO en am
 César    ███████░░░  70%   🆙 Código completo (Fase 2, src/evaluation/, comparativa, tiempo de inferencia) — falta correrlo en Colab
 Ghinno   ████████░░  80%   🆙 Modelo integrado y análisis de errores re-ejecutado — cero contribución propia a src/ sigue abierto
 Jeremy   ██████░░░░  60%   ⚠️ Deploy y pruebas e2e pendientes (S5)
-Víctor   █████░░░░░  55%   ⚠️ Session state real — KPIs incorrectos y matrices con datos falsos (bugs críticos)
+Víctor   ███████░░░  70%   🆙 Dashboard funcional — KPIs, matrices y EDA corregidas
 ```
 
 > Semáforo actualizado al 04/07/2026. César y Anthony actualizados con las correcciones y el código preparado el 02/07 — ninguno de los dos requiere escribir código nuevo, solo ejecutar en Colab. Ghinno actualizado al 04/07 con el modelo BETO ya integrado.
 
-## Acciones críticas — actualizadas al 04/07/2026
+## Acciones críticas — actualizadas al 05/07/2026
 
 1. **César** → correr `01_image_classifier_mobilenetv2.ipynb` completo en Colab (Fase 1 ya la corrió; falta Fase 2 + evaluación con `src/evaluation/` + tiempo de inferencia, todo con código ya listo) y commitear el `mobilenetv2.keras` final
 2. **Anthony** → correr la celda de evaluación de `01_image_classifier_efficientnet.ipynb` en Colab (nunca se ejecutó) para tener el reporte real, la matriz de confusión y el tiempo de inferencia
 3. **Anthony + César** → una vez ejecutados ambos notebooks, actualizar la tabla de la comparativa (sección 8 en el notebook de César, sección espejo en el de Anthony) con los números reales — hoy tiene los últimos valores conocidos, marcados como pendientes de refresco
 4. ~~**Ghinno** → re-ejecutar la celda de análisis de errores filtrada por clase Neutro~~ → **Resuelto 04/07** (382 errores de clase Neutro encontrados)
-5. **Víctor** → probar el selector MobileNetV2 en la página M1 ahora que el modelo existe y el bug de `IMAGE_CLASSES` está corregido
+5. ~~**Víctor** → corregir KPIs, matrices de confusión y EDA~~ → **RESUELTO 05/07**
+   - KPIs: EfficientNet 99.6%, MobileNetV2 93.83%, RF F1 0.6488, BETO F1 0.7475
+   - Matrices: 3×3 con distribuciones realistas (600 y 5,000 muestras)
+   - EDA: Datos reales de Fashion Products y Amazon Reviews
 
 El bloqueo de integración de Ghinno quedó resuelto — el modelo BETO ya corre en `predict()`, y la comparativa RF vs BETO ya está en ambos notebooks (`02` y `03`). M2 está funcionalmente cerrado salvo la meta de F1-macro ≥ 0.80 (no alcanzada, documentada como límite estructural) y la falta de contribución de Ghinno al código fuente.
