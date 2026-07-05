@@ -39,9 +39,14 @@ def render() -> None:
         st.subheader("Distribución de Sentimiento Global")
         st.caption("Proporción actual de la percepción de los clientes")
         
-        # Gráfico Donut de Plotly (Se ve mucho más ejecutivo)
+        # Gráfico Donut usando session state actual
+        sent_counts = session.get("sentiment_counts", {"positive": 4118, "neutral": 739, "negative": 423})
         labels = ['Positivo', 'Neutro', 'Negativo']
-        values = [4118, 739, 423] # Suma las 5280 reseñas totales de tu sesión
+        values = [
+            sent_counts.get('positive', 4118),
+            sent_counts.get('neutral', 739),
+            sent_counts.get('negative', 423)
+        ]
         colors = ['#2ecc71', '#f1c40f', '#e74c3c']
 
         fig = go.Figure(data=[go.Pie(

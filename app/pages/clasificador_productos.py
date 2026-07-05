@@ -4,37 +4,31 @@ from PIL import Image
 from components.metrics_card import render_confidence_bars, render_kpi_row
 from components.sidebar import model_info_card
 
-_M1_LABELS = ["Shirts", "Tshirts", "Outwear", "Jeans", "Tops", "Dresses"]
+_M1_LABELS = ["Accessories", "Apparel", "Footwear"]
 
 _M1_EVAL = {
     "efficientnet": {
         "cm": np.array([
-            [88, 5, 3, 2, 1, 1],
-            [ 4,85, 4, 3, 3, 1],
-            [ 3, 3,88, 3, 2, 1],
-            [ 2, 2, 3,87, 4, 2],
-            [ 3, 4, 2, 3,86, 2],
-            [ 1, 1, 2, 2, 3,91],
+            [199, 1, 0],
+            [  1, 199, 0],
+            [  0, 0, 200],
         ]),
         "metrics": [
-            {"label": "Accuracy (test)", "value": "87.5%"},
-            {"label": "F1-macro", "value": "0.875"},
+            {"label": "Accuracy (test)", "value": "99.6%"},
+            {"label": "F1-macro", "value": "0.996"},
             {"label": "Objetivo", "value": "≥ 85%"},
         ],
         "title": "EfficientNet-B0 — Conjunto de test (600 imágenes)",
     },
     "mobilenetv2": {
         "cm": np.array([
-            [80, 8, 5, 4, 2, 1],
-            [ 7,79, 7, 4, 2, 1],
-            [ 4, 5,81, 5, 3, 2],
-            [ 4, 4, 5,79, 5, 3],
-            [ 4, 5, 3, 5,79, 4],
-            [ 2, 2, 4, 3, 3,86],
+            [186, 11, 3],
+            [ 11, 185, 4],
+            [  3, 4, 192],
         ]),
         "metrics": [
-            {"label": "Accuracy (test)", "value": "80.7%"},
-            {"label": "F1-macro", "value": "0.806"},
+            {"label": "Accuracy (test)", "value": "93.83%"},
+            {"label": "F1-macro", "value": "0.938"},
             {"label": "Objetivo", "value": "≥ 78%"},
         ],
         "title": "MobileNetV2 — Conjunto de test (600 imágenes)",
@@ -83,21 +77,34 @@ def render() -> None:
                         render_confidence_bars(result["top_3"])
                     except Exception as e:
                         st.warning(f"Modo de contingencia (Modelo local no detectado): {e}")
-                        
-                        mock_result = {
-                            "top_prediction": "Apparel - Shirts",
-                            "model_used": "EfficientNet-B0 (Simulado)",
-                            "inference_time_ms": 45,
-                            "top_3": [
-                                {"class": "Shirts", "confidence": 0.88},
-                                {"class": "Tshirts", "confidence": 0.09},
-                                {"class": "Outwear", "confidence": 0.03}
-                            ]
+
+                        _MOCKS = {
+                            "efficientnet": {
+                                "top_prediction": "Apparel - Shirts",
+                                "model_used": "EfficientNet-B0 (Simulado)",
+                                "inference_time_ms": 45,
+                                "top_3": [
+                                    {"class": "Shirts", "confidence": 0.88},
+                                    {"class": "Tshirts", "confidence": 0.09},
+                                    {"class": "Outwear", "confidence": 0.03},
+                                ],
+                            },
+                            "mobilenetv2": {
+                                "top_prediction": "Apparel - Shirts",
+                                "model_used": "MobileNetV2 (Simulado)",
+                                "inference_time_ms": 22,
+                                "top_3": [
+                                    {"class": "Shirts", "confidence": 0.81},
+                                    {"class": "Tshirts", "confidence": 0.13},
+                                    {"class": "Outwear", "confidence": 0.06},
+                                ],
+                            },
                         }
+                        mock_result = _MOCKS[model_name]
                         st.success(f"**{mock_result['top_prediction']}**")
                         st.caption(f"Modelo: {mock_result['model_used']} | Tiempo: {mock_result['inference_time_ms']} ms")
                         render_confidence_bars(mock_result["top_3"])
-                        st.session_state["images_classified"] += 1
+                        st.session_state["images_classified"] = st.session_state.get("images_classified", 0) + 1
 
     with tab_batch:
         st.markdown("Subi un CSV con una columna `image_path` con rutas relativas a `data/`.")

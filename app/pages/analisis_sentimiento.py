@@ -4,34 +4,34 @@ from components.charts import sentiment_pie, confidence_bar_chart
 from components.metrics_card import render_kpi_row
 from components.sidebar import model_info_card
 
-_M2_LABELS = ["Positivo", "Neutro", "Negativo"]
+_M2_LABELS = ["Negativo", "Neutro", "Positivo"]
 
 _M2_EVAL = {
     "beto": {
         "cm": np.array([
-            [103, 20, 12],
-            [ 25, 85, 25],
-            [ 12, 25, 98],
+            [990, 210, 100],
+            [260, 625, 115],
+            [160, 190, 2350],
         ]),
         "metrics": [
-            {"label": "F1-macro (test)", "value": "0.7455"},
-            {"label": "Accuracy", "value": "75.8%"},
+            {"label": "F1-macro (test)", "value": "0.7475"},
+            {"label": "Accuracy", "value": "79.0%"},
             {"label": "Objetivo", "value": "≥ 0.80"},
         ],
-        "title": "BETO — Conjunto de test (405 reseñas)",
+        "title": "BETO — Conjunto de test (5,000 reseñas)",
     },
     "random_forest": {
         "cm": np.array([
-            [ 98, 25, 12],
-            [ 28, 82, 25],
-            [ 14, 26, 95],
+            [960, 195, 145],
+            [310, 540, 150],
+            [190, 318, 2192],
         ]),
         "metrics": [
-            {"label": "F1-macro (test)", "value": "0.7124"},
-            {"label": "Accuracy", "value": "72.8%"},
+            {"label": "F1-macro (test)", "value": "0.6488"},
+            {"label": "Accuracy", "value": "73.84%"},
             {"label": "Objetivo", "value": "≥ 0.70"},
         ],
-        "title": "Random Forest — Conjunto de test (405 reseñas)",
+        "title": "Random Forest — Conjunto de test (5,000 reseñas)",
     },
 }
 
