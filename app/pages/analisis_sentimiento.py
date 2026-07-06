@@ -6,6 +6,11 @@ from components.sidebar import model_info_card
 
 _M2_LABELS = ["Negativo", "Neutro", "Positivo"]
 
+_M2_MODEL_DISPLAY_NAME = {
+    "beto": "BETO — BERT Spanish",
+    "random_forest": "Random Forest (TF-IDF)",
+}
+
 _M2_EVAL = {
     "beto": {
         "cm": np.array([
@@ -58,7 +63,11 @@ def render() -> None:
         )
 
     model_name = "beto" if "BETO" in model_choice else "random_forest"
-    tab_single, tab_batch, tab_eval = st.tabs(["Reseña individual", "Carga masiva (CSV)", "Evaluación del modelo"])
+    tab_single, tab_batch, tab_eval = st.tabs([
+        ":material/rate_review: Reseña individual",
+        ":material/upload_file: Carga masiva (CSV)",
+        ":material/analytics: Evaluación del modelo",
+    ])
 
     with tab_single:
         text = st.text_area(
@@ -74,21 +83,26 @@ def render() -> None:
                     try:
                         from src.sentiment_analyzer.predict import predict
                         result = predict(text, model_name=model_name)
+                        model_display = _M2_MODEL_DISPLAY_NAME.get(result["model_used"], result["model_used"])
                         st.markdown(f"### {result['sentiment'].capitalize()}")
-                        st.caption(f"Modelo: {result['model_used']} | Confianza: {result['confidence']:.1%}")
+                        st.caption(f"Modelo: {model_display} | Confianza: {result['confidence']:.1%}")
                         st.plotly_chart(confidence_bar_chart(result["scores"]), use_container_width=True)
+
+                        counts = st.session_state["sentiment_counts"]
+                        counts[result["sentiment"]] = counts.get(result["sentiment"], 0) + 1
+                        st.session_state["reviews_analyzed"] = st.session_state.get("reviews_analyzed", 0) + 1
+                        st.session_state["last_sentiment_prediction"] = result["sentiment"]
+                        total = sum(counts.values())
+                        st.session_state["avg_sentiment"] = counts.get("positive", 0) / total if total else None
+                        st.session_state["activity_log"].append({
+                            "modulo": "Sentimiento",
+                            "evento": f"{result['sentiment'].capitalize()} — {model_display}",
+                            "estado": "OK",
+                        })
+                    except FileNotFoundError as e:
+                        st.error(f"Modelo no disponible: {e}")
                     except Exception as e:
-                        st.warning(f"Modo de contingencia (BETO local no detectado): {e}")
-                        mock_result = {
-                            "sentiment": "positive",
-                            "model_used": "BETO - BERT Spanish (Simulado)",
-                            "confidence": 0.942,
-                            "scores": {"positive": 0.942, "neutral": 0.041, "negative": 0.017}
-                        }
-                        st.markdown(f"### {mock_result['sentiment'].capitalize()}")
-                        st.caption(f"Modelo: {mock_result['model_used']} | Confianza: {mock_result['confidence']:.1%}")
-                        st.plotly_chart(confidence_bar_chart(mock_result["scores"]), use_container_width=True)
-                        st.session_state["reviews_analyzed"] += 1
+                        st.error(f"Error al analizar la reseña: {e}")
 
     with tab_batch:
         st.markdown("Subi un CSV con columna `review_body`.")

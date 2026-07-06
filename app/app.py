@@ -20,20 +20,32 @@ if app_dir not in sys.path:
 
 st.set_page_config(
     page_title="SmartRetail 360",
-    page_icon="🛒",
+    page_icon=":material/storefront:",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# Estado global
+# Estado global — arranca en cero, se llena con uso real de los módulos
 if "images_classified" not in st.session_state:
-    st.session_state["images_classified"] = 1420
+    st.session_state["images_classified"] = 0
 
 if "reviews_analyzed" not in st.session_state:
-    st.session_state["reviews_analyzed"] = 5280
+    st.session_state["reviews_analyzed"] = 0
 
 if "avg_sentiment" not in st.session_state:
-    st.session_state["avg_sentiment"] = 0.782
+    st.session_state["avg_sentiment"] = None
+
+if "sentiment_counts" not in st.session_state:
+    st.session_state["sentiment_counts"] = {"positive": 0, "neutral": 0, "negative": 0}
+
+if "last_image_prediction" not in st.session_state:
+    st.session_state["last_image_prediction"] = None
+
+if "last_sentiment_prediction" not in st.session_state:
+    st.session_state["last_sentiment_prediction"] = None
+
+if "activity_log" not in st.session_state:
+    st.session_state["activity_log"] = []
 
 # Sidebar
 with st.sidebar:
@@ -67,7 +79,7 @@ with st.sidebar:
     )
 
     st.divider()
-    st.caption("Proyecto Final — IA Universitaria · 2026")
+    st.caption("Proyecto Final — Inteligencia Artificial · 2026")
 
 # Routing
 if selected == "Inicio":
@@ -86,21 +98,21 @@ if selected == "Inicio":
 
     with col1:
         st.success(
-            "**Clasificador de Productos**\n\n"
+            ":material/photo_camera: **Clasificador de Productos**\n\n"
             "EfficientNet-B0 y MobileNetV2.\n\n"
             "Clasifica imágenes de productos."
         )
 
     with col2:
         st.success(
-            "**Análisis de Sentimiento**\n\n"
+            ":material/chat: **Análisis de Sentimiento**\n\n"
             "BETO + Random Forest.\n\n"
             "Clasifica reseñas en positivo, neutro o negativo."
         )
 
     with col3:
         st.warning(
-            "**Predicción de Ventas**\n\n"
+            ":material/trending_up: **Predicción de Ventas**\n\n"
             "Prophet (Meta).\n\n"
             "Módulo en desarrollo."
         )

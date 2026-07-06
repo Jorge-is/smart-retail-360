@@ -6,6 +6,11 @@ from components.sidebar import model_info_card
 
 _M1_LABELS = ["Accessories", "Apparel", "Footwear"]
 
+_M1_MODEL_DISPLAY_NAME = {
+    "efficientnet": "EfficientNet-B0",
+    "mobilenetv2": "MobileNetV2",
+}
+
 _M1_EVAL = {
     "efficientnet": {
         "cm": np.array([
@@ -49,7 +54,7 @@ def render() -> None:
     st.header("Clasificador de Productos")
     st.caption("Clasificación automática de imágenes — EfficientNet-B0 vs MobileNetV2")
 
-    model_info_card("Imagenes", "EfficientNet-B0 / MobileNetV2", "Accuracy (test)", ">= 78-85%")
+    model_info_card("Imágenes", "EfficientNet-B0 / MobileNetV2", "Accuracy (test)", ">= 78-85%")
 
     with st.sidebar:
         model_choice = st.radio(
@@ -58,7 +63,11 @@ def render() -> None:
         )
 
     model_name = "efficientnet" if "EfficientNet" in model_choice else "mobilenetv2"
-    tab_single, tab_batch, tab_eval = st.tabs(["Imagen individual", "Carga por lote (CSV)", "Evaluación del modelo"])
+    tab_single, tab_batch, tab_eval = st.tabs([
+        ":material/image: Imagen individual",
+        ":material/upload_file: Carga por lote (CSV)",
+        ":material/analytics: Evaluación del modelo",
+    ])
 
     with tab_single:
         uploaded = st.file_uploader("Subi una imagen del producto", type=["jpg", "jpeg", "png"], key="uploader_productos")
@@ -72,39 +81,22 @@ def render() -> None:
                     try:
                         from src.image_classifier.predict import predict
                         result = predict(image, model_name=model_name)
+                        model_display = _M1_MODEL_DISPLAY_NAME.get(result["model_used"], result["model_used"])
                         st.success(f"**{result['top_prediction']}**")
-                        st.caption(f"Modelo: {result['model_used']} | Tiempo: {result['inference_time_ms']} ms")
+                        st.caption(f"Modelo: {model_display} | Tiempo: {result['inference_time_ms']} ms")
                         render_confidence_bars(result["top_3"])
-                    except Exception as e:
-                        st.warning(f"Modo de contingencia (Modelo local no detectado): {e}")
 
-                        _MOCKS = {
-                            "efficientnet": {
-                                "top_prediction": "Apparel - Shirts",
-                                "model_used": "EfficientNet-B0 (Simulado)",
-                                "inference_time_ms": 45,
-                                "top_3": [
-                                    {"class": "Shirts", "confidence": 0.88},
-                                    {"class": "Tshirts", "confidence": 0.09},
-                                    {"class": "Outwear", "confidence": 0.03},
-                                ],
-                            },
-                            "mobilenetv2": {
-                                "top_prediction": "Apparel - Shirts",
-                                "model_used": "MobileNetV2 (Simulado)",
-                                "inference_time_ms": 22,
-                                "top_3": [
-                                    {"class": "Shirts", "confidence": 0.81},
-                                    {"class": "Tshirts", "confidence": 0.13},
-                                    {"class": "Outwear", "confidence": 0.06},
-                                ],
-                            },
-                        }
-                        mock_result = _MOCKS[model_name]
-                        st.success(f"**{mock_result['top_prediction']}**")
-                        st.caption(f"Modelo: {mock_result['model_used']} | Tiempo: {mock_result['inference_time_ms']} ms")
-                        render_confidence_bars(mock_result["top_3"])
                         st.session_state["images_classified"] = st.session_state.get("images_classified", 0) + 1
+                        st.session_state["last_image_prediction"] = result["top_prediction"]
+                        st.session_state["activity_log"].append({
+                            "modulo": "Clasificador",
+                            "evento": f"{result['top_prediction']} — {model_display}",
+                            "estado": "OK",
+                        })
+                    except FileNotFoundError as e:
+                        st.error(f"Modelo no disponible: {e}")
+                    except Exception as e:
+                        st.error(f"Error al clasificar la imagen: {e}")
 
     with tab_batch:
         st.markdown("Subi un CSV con una columna `image_path` con rutas relativas a `data/`.")

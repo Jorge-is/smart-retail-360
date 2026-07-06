@@ -16,8 +16,8 @@ def render() -> None:
 
     tab1, tab2 = st.tabs(
         [
-            "Fashion Products",
-            "Amazon Reviews"
+            ":material/checkroom: Fashion Products",
+            ":material/reviews: Amazon Reviews",
         ]
     )
 
@@ -37,7 +37,7 @@ def render() -> None:
             use_container_width=True
         )
         
-        with st.expander("📊 Hallazgos principales"):
+        with st.expander("Hallazgos principales", icon=":material/insights:"):
             st.markdown("""
             - **Total de imágenes:** 44,446 (después de filtrado)
             - **Clases:** 3 categorías principales
@@ -62,7 +62,7 @@ def render() -> None:
             use_container_width=True
         )
         
-        with st.expander("📊 Hallazgos principales"):
+        with st.expander("Hallazgos principales", icon=":material/insights:"):
             st.markdown("""
             - **Total de reseñas:** 5,280 del dataset Amazon Reviews en español
             - **Rating mapping:** 1-2 estrellas → Negativo | 3 estrellas → Neutro | 4-5 estrellas → Positivo
