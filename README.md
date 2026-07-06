@@ -47,7 +47,9 @@ smart-retail-360/
 │   ├── 01_image_classifier_mobilenetv2.ipynb
 │   ├── 02_sentiment_baseline_randomforest.ipynb
 │   ├── 03_sentiment_beto_finetuning.ipynb
-│   └── 04_sales_predictor_prophet.ipynb  (opcional)
+│   ├── 04_sales_predictor_prophet.ipynb  (opcional)
+│   ├── 05_viability_comparison.ipynb     # EfficientNet-B0 vs MobileNetV2
+│   └── 06_sentiment_comparison.ipynb     # Random Forest vs BETO
 ├── src/                # Código fuente modular
 │   ├── image_classifier/
 │   ├── sentiment_analyzer/
