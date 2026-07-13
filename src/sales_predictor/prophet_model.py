@@ -1,8 +1,7 @@
 import joblib
-import pandas as pd
 from prophet import Prophet
 
-from src.utils.config import SALES_PROPHET_MODEL_PATH
+from src.utils.config import sales_prophet_path
 from src.utils.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -20,11 +19,18 @@ def build_model(use_sentiment: bool = False) -> Prophet:
     return model
 
 
-def save_model(model: Prophet) -> None:
-    SALES_PROPHET_MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
-    joblib.dump(model, SALES_PROPHET_MODEL_PATH)
-    logger.info("Prophet guardado en %s", SALES_PROPHET_MODEL_PATH)
+def save_model(model: Prophet, store_id: int) -> None:
+    path = sales_prophet_path(store_id)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    joblib.dump(model, path)
+    logger.info("Prophet (tienda %s) guardado en %s", store_id, path)
 
 
-def load_model() -> Prophet:
-    return joblib.load(SALES_PROPHET_MODEL_PATH)
+def load_model(store_id: int) -> Prophet:
+    path = sales_prophet_path(store_id)
+    if not path.exists():
+        raise FileNotFoundError(
+            f"No hay modelo Prophet entrenado para store_id={store_id}. "
+            f"Revisá SALES_STORE_SUBSET en config.py o corré train.py."
+        )
+    return joblib.load(path)

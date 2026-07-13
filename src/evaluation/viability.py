@@ -9,12 +9,18 @@ VIABILITY_THRESHOLDS = {
         "beto": {"accuracy_min": 0.80, "f1_macro_min": 0.80},
         "random_forest": {"accuracy_min": 0.75, "f1_macro_min": 0.70},
     },
+    "sales_predictor": {
+        "prophet": {"mape_max": 15.0, "mape_warn": 25.0},
+        "xgboost": {"mape_max": 15.0, "mape_warn": 25.0},
+    },
 }
 
 
 def assess_viability(metrics: dict, module: str, model_name: str | None = None) -> dict:
     """
     Evalúa si el modelo supera los umbrales de viabilidad definidos.
+    Válido para módulos de CLASIFICACIÓN (image_classifier, sentiment_analyzer).
+    Para sales_predictor usar assess_regression_viability() en su lugar.
 
     Args:
         metrics: Resultado de compute_metrics() — debe incluir "accuracy" y "f1_macro".
@@ -75,3 +81,40 @@ def assess_viability(metrics: dict, module: str, model_name: str | None = None) 
         "reasons": reasons if reasons else ["Todos los umbrales superados."],
         "recommendation": recommendation,
     }
+
+
+def assess_regression_viability(metrics: dict, model_name: str = "prophet") -> dict:
+    """
+    Evalúa viabilidad de un modelo de forecasting (módulo 3) según su MAPE.
+
+    Escala usada (estándar en forecasting — a menor MAPE, mejor):
+      MAPE < 15%          -> Apto para producción
+      15% <= MAPE < 25%   -> Requiere mejoras
+      MAPE >= 25%          -> No viable
+
+    Args:
+        metrics: Resultado de compute_regression_metrics() — debe incluir "mape".
+        model_name: "prophet" | "xgboost"
+
+    Returns:
+        {"is_viable": bool, "reasons": list[str], "recommendation": str}
+    """
+    thresholds = VIABILITY_THRESHOLDS["sales_predictor"].get(
+        model_name, {"mape_max": 15.0, "mape_warn": 25.0}
+    )
+    mape = metrics.get("mape", 100.0)
+
+    if mape < thresholds["mape_max"]:
+        is_viable = True
+        recommendation = "Apto para producción"
+        reasons = [f"MAPE {mape:.2f}% < {thresholds['mape_max']}%"]
+    elif mape < thresholds["mape_warn"]:
+        is_viable = False
+        recommendation = "Requiere mejoras"
+        reasons = [f"MAPE {mape:.2f}% entre {thresholds['mape_max']}% y {thresholds['mape_warn']}%"]
+    else:
+        is_viable = False
+        recommendation = "No viable"
+        reasons = [f"MAPE {mape:.2f}% >= {thresholds['mape_warn']}%"]
+
+    return {"is_viable": is_viable, "reasons": reasons, "recommendation": recommendation}

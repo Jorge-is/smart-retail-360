@@ -15,7 +15,23 @@ SEED = int(os.getenv("SEED", 42))
 IMAGE_CLASSIFIER_MODEL_PATH = MODELS_DIR / "image_classifier" / "efficientnet_b0.keras"
 SENTIMENT_TFIDF_MODEL_PATH = MODELS_DIR / "sentiment_analyzer" / "tfidf_baseline.pkl"
 SENTIMENT_BETO_MODEL_PATH = MODELS_DIR / "sentiment_analyzer" / "beto_finetuned"
-SALES_PROPHET_MODEL_PATH = MODELS_DIR / "sales_predictor" / "prophet_model.joblib"
+
+# --- Módulo 3: predicción de ventas ---
+SALES_MODELS_DIR = MODELS_DIR / "sales_predictor"
+SALES_METRICS_PATH = SALES_MODELS_DIR / "metrics.json"
+SALES_SENTIMENT_CSV_PATH = DATA_DIR / "raw" / "sentiment_synthetic" / "reviews_synthetic.csv"
+
+# Subconjunto de tiendas Rossmann usado para entrenar (de 1115 totales).
+SALES_STORE_SUBSET = [1, 3, 7, 15, 22, 34, 45, 58, 67, 78]
+
+
+def sales_prophet_path(store_id: int) -> Path:
+    return SALES_MODELS_DIR / f"prophet_store_{store_id}.joblib"
+
+
+def sales_xgboost_path(store_id: int) -> Path:
+    return SALES_MODELS_DIR / f"xgboost_store_{store_id}.joblib"
+
 
 IMAGE_SIZE = (224, 224)
 IMAGE_CLASSES = ["Accessories", "Apparel", "Footwear"]
