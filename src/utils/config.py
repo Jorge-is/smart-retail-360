@@ -32,7 +32,10 @@ def sales_prophet_path(store_id: int) -> Path:
 def sales_xgboost_path(store_id: int) -> Path:
     return SALES_MODELS_DIR / f"xgboost_store_{store_id}.joblib"
 
+
+# XGBoost GLOBAL: un solo modelo entrenado con las 1115 tiendas juntas
 SALES_XGBOOST_GLOBAL_MODEL_PATH = SALES_MODELS_DIR / "xgboost_global.joblib"
+SALES_PROPHET_MODELS_PATH = SALES_MODELS_DIR / "prophet_models.joblib"
 
 IMAGE_SIZE = (224, 224)
 IMAGE_CLASSES = ["Accessories", "Apparel", "Footwear"]
