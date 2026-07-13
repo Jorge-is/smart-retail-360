@@ -19,7 +19,7 @@ def predict(store_id: int, horizon_days: int, sentiment_score: float = None) -> 
     Args:
         store_id: ID de la tienda (debe estar en SALES_STORE_SUBSET, ver config.py).
         horizon_days: Días a pronosticar hacia el futuro (7, 15 o 30).
-        sentiment_score: Sentimiento promedio (0.0–1.0) para usar como regressor.
+        sentiment_score: Sentimiento promedio (−1.0 a 1.0 o 0.0 a 1.0) para usar como regressor.
                          None si el modelo fue entrenado sin esta feature.
 
     Returns:

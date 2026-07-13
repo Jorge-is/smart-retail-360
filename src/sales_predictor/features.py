@@ -39,6 +39,41 @@ def prepare_global_df(raw_df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+# Categorías conocidas del dataset Rossmann (store.csv)
+_STORE_TYPE_CATEGORIES = ["a", "b", "c", "d"]
+_ASSORTMENT_CATEGORIES = ["a", "b", "c"]
+
+STORE_META_COLS = (
+    ["CompetitionDistance", "Promo2"]
+    + [f"StoreType_{c}" for c in _STORE_TYPE_CATEGORIES]
+    + [f"Assortment_{c}" for c in _ASSORTMENT_CATEGORIES]
+)
+
+
+def add_store_features(df: pd.DataFrame, store_csv_path) -> pd.DataFrame:
+    store_meta = pd.read_csv(store_csv_path)
+    df = df.merge(store_meta, left_on="store_id", right_on="Store", how="left")
+
+    df["CompetitionDistance"] = df["CompetitionDistance"].fillna(
+        df["CompetitionDistance"].max() * 2
+    )
+    df["Promo2"] = df["Promo2"].fillna(0).astype(int)
+
+    df = pd.get_dummies(
+        df,
+        columns=["StoreType", "Assortment"],
+        prefix=["StoreType", "Assortment"],
+        dtype=int,
+    )
+    # Asegura que las columnas existan aunque alguna categoría no haya
+    # aparecido en este split particular del dataset.
+    for col in STORE_META_COLS:
+        if col not in df.columns:
+            df[col] = 0
+
+    return df.drop(columns=["Store"])
+
+
 def add_sentiment_regressor(df: pd.DataFrame, sentiment_series: pd.Series) -> pd.DataFrame:
     """
     Une el sentimiento promedio diario al DataFrame de ventas.
