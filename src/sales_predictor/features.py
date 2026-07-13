@@ -77,7 +77,7 @@ def add_store_features(df: pd.DataFrame, store_csv_path) -> pd.DataFrame:
 def add_sentiment_regressor(df: pd.DataFrame, sentiment_series: pd.Series) -> pd.DataFrame:
     """
     Une el sentimiento promedio diario al DataFrame de ventas.
-    sentiment_series: índice=fecha, valor=score promedio (−1 a 1 o 0 a 1).
+    sentiment_series: índice=fecha, valor=score promedio (0 a 1).
     Los días sin reseña se rellenan con el promedio general de la serie.
     """
     df = df.copy()
@@ -101,3 +101,65 @@ def build_sentiment_series_from_csv(csv_path, predict_fn: Callable[[str], dict])
 
     daily_series = reviews_df.groupby("date")["sentiment_score"].mean()
     return daily_series
+
+_POSITIVE_REVIEW_TEMPLATES = [
+    "Excelente atención, encontré todo lo que buscaba muy rápido.",
+    "Muy buena experiencia de compra, el local estaba impecable.",
+    "El personal fue súper amable y me ayudó a elegir bien.",
+    "Precios justos y buena variedad de productos, volveré seguro.",
+    "Todo perfecto, la tienda tenía justo lo que necesitaba.",
+    "Compré varias cosas y quedé muy conforme con la calidad.",
+    "Una experiencia de compra muy agradable, recomendable.",
+    "El local estaba ordenado y la atención fue rápida y amable.",
+    "Encontré ofertas muy buenas, salí contento de la tienda.",
+    "Ambiente agradable y buen servicio, sin dudas vuelvo.",
+]
+
+_NEUTRAL_REVIEW_TEMPLATES = [
+    "La compra estuvo bien, nada fuera de lo común.",
+    "Todo normal, encontré lo que buscaba sin mayores problemas.",
+    "Atención correcta, aunque nada memorable.",
+    "El local estaba como siempre, sin grandes cambios.",
+    "Compra estándar, cumplió con lo esperado.",
+]
+
+_NEGATIVE_REVIEW_TEMPLATES = [
+    "Mucha fila para pagar, tardé bastante en salir de la tienda.",
+    "No encontré varios productos que buscaba en las góndolas.",
+    "El local estaba algo desordenado, faltaba stock de varias cosas.",
+    "La atención fue lenta, esperé demasiado para que me ayudaran.",
+    "Precios más altos que en otras tiendas de la zona.",
+    "Poca variedad de productos disponibles ese día.",
+    "El local estaba muy lleno y la experiencia fue incómoda.",
+]
+
+def generate_synthetic_reviews(
+    reference_sales: pd.DataFrame,
+    noise: float = 0.3,
+    seed: int = 42,
+) -> pd.DataFrame:
+    
+    import random
+
+    rng = random.Random(seed)
+
+    df = reference_sales.copy().sort_values("ds").reset_index(drop=True)
+    df["baseline"] = df["y"].rolling(window=7, min_periods=1, center=True).mean()
+    df["above_trend"] = df["y"] > df["baseline"]
+
+    rows = []
+    for _, row in df.iterrows():
+        above = row["above_trend"]
+        if rng.random() < noise:
+            above = rng.random() < 0.5  # ruido: se ignora la tendencia real
+
+        if above:
+            text = rng.choice(_POSITIVE_REVIEW_TEMPLATES)
+        else:
+            text = rng.choice(_NEUTRAL_REVIEW_TEMPLATES + _NEGATIVE_REVIEW_TEMPLATES)
+
+        n_reviews = rng.choice([1, 1, 2])  # mayoría 1 reseña/día, a veces 2
+        for _ in range(n_reviews):
+            rows.append({"date": row["ds"].strftime("%Y-%m-%d"), "review_text": text})
+
+    return pd.DataFrame(rows)
