@@ -28,7 +28,6 @@ data/raw/*
 data/processed/*
 data/external/*
 !data/raw/.gitkeep
-!data/raw/sentiment_synthesis/*
 !data/processed/.gitkeep
 !data/external/.gitkeep
 
@@ -40,6 +39,8 @@ models/**/beto_finetuned/
 !models/image_classifier/.gitkeep
 !models/sentiment_analyzer/.gitkeep
 !models/sales_predictor/.gitkeep
+!models/sales_predictor/*.joblib
+
 
 # Jupyter
 .ipynb_checkpoints/

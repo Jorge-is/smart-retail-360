@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 import pandas as pd
 
 from src.sales_predictor.prophet_model import load_all_models
@@ -25,40 +26,50 @@ def _get_model(store_id: int):
     return models[store_id]
 
 
-def predict(store_id: int, horizon_days: int, sentiment_score: float = None) -> dict:
-    """
-    Args:
-        store_id: ID de la tienda (debe estar dentro del archivo consolidado).
-        horizon_days: Días a pronosticar hacia el futuro (7, 15 o 30).
-        sentiment_score: Sentimiento promedio (0.0–1.0) para usar como regressor.
-                         None si el modelo fue entrenado sin esta feature.
+def predict(
+    store_id: int,
+    horizon_days: int,
+    sentiment_score: float = None,
+    reference_date: date | None = None,
+) -> dict:
+    if sentiment_score is not None:
+        sentiment_score = max(0.0, min(1.0, sentiment_score))
 
-    Returns:
-        {
-            "forecast": [
-                {"date": str, "predicted_sales": float, "lower": float, "upper": float},
-                ...
-            ],
-            "metrics": {"mae": float, "rmse": float, "mape": float}
-        }
-    """
     model = _get_model(store_id)
     future = model.make_future_dataframe(periods=horizon_days)
     if sentiment_score is not None and "sentiment" in model.extra_regressors:
         future["sentiment"] = sentiment_score
     forecast = model.predict(future)
-    result_df = forecast.tail(horizon_days)[["ds", "yhat", "yhat_lower", "yhat_upper"]]
-    forecast_list = [
-        {
-            "date": row["ds"].strftime("%Y-%m-%d"),
+    result_df = forecast.tail(horizon_days)[["ds", "yhat", "yhat_lower", "yhat_upper"]].reset_index(drop=True)
+
+    ref = reference_date or date.today()
+    display_dates = [ref + timedelta(days=i + 1) for i in range(horizon_days)]
+
+    forecast_list = []
+    negative_days = 0
+    for i, row in result_df.iterrows():
+        if row["yhat"] < 0:
+            negative_days += 1
+        forecast_list.append({
+            "date": display_dates[i].strftime("%Y-%m-%d"),
             "predicted_sales": round(max(row["yhat"], 0), 2),
             "lower": round(max(row["yhat_lower"], 0), 2),
             "upper": round(max(row["yhat_upper"], 0), 2),
-        }
-        for _, row in result_df.iterrows()
-    ]
+        })
+
     # Métricas vacías — se calculan durante entrenamiento y se guardan separado
-    return {
+    result = {
         "forecast": forecast_list,
         "metrics": {"mae": None, "rmse": None, "mape": None},
     }
+
+    if negative_days:
+        result["warning"] = (
+            f"El pronóstico dio valores negativos (recortados a 0) en {negative_days} de "
+            f"{horizon_days} días. Esto suele pasar cuando sentiment_score "
+            f"({sentiment_score if sentiment_score is not None else 'N/A'}) está lejos del "
+            f"rango con el que se entrenó el regressor de sentimiento — probá con un valor "
+            f"más bajo (cerca de 0.1–0.3)."
+        )
+
+    return result
