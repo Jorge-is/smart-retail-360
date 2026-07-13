@@ -20079,14 +20079,14 @@
     "used_sentiment_regressor": true,
     "xgboost": {
       "metrics": {
-        "mae": 708.87,
-        "rmse": 986.26,
-        "mape": 10.42
+        "mae": 774.1,
+        "rmse": 1082.37,
+        "mape": 11.15
       },
       "viability": {
         "is_viable": true,
         "reasons": [
-          "MAPE 10.42% < 15.0%"
+          "MAPE 11.15% < 15.0%"
         ],
         "recommendation": "Apto para producción"
       }
