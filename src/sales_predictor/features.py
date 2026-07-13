@@ -21,9 +21,21 @@ def prepare_prophet_df(raw_df: pd.DataFrame, store_id: int) -> pd.DataFrame:
     Filtra por tienda y devuelve DataFrame con columnas 'ds' e 'y'
     listo para Prophet.
     """
-    df = raw_df[raw_df["Store"] == store_id][["Date", "Sales"]].copy()
+    df = raw_df[raw_df["Store"] == store_id][["Date", "Sales", "Open"]].copy()
+    df = df[df["Open"] == 1].drop(columns=["Open"])
     df = df.rename(columns={"Date": "ds", "Sales": "y"})
     df = df.sort_values("ds").reset_index(drop=True)
+    return df
+
+
+def prepare_global_df(raw_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Prepara el dataset COMPLETO (las 1115 tiendas juntas) para el XGBoost
+    Devuelve columnas: store_id, ds, y, Promo.
+    """
+    df = raw_df[raw_df["Open"] == 1][["Store", "Date", "Sales", "Promo"]].copy()
+    df = df.rename(columns={"Store": "store_id", "Date": "ds", "Sales": "y"})
+    df = df.sort_values(["store_id", "ds"]).reset_index(drop=True)
     return df
 
 
