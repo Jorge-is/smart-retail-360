@@ -1,25 +1,36 @@
 import pandas as pd
 
-from src.sales_predictor.prophet_model import load_model
+from src.sales_predictor.prophet_model import load_all_models
 from src.utils.logging_config import get_logger
 
 logger = get_logger(__name__)
 
-_models: dict[int, object] = {}
+_models_cache: dict | None = None
+
+
+def _get_all_models() -> dict:
+    global _models_cache
+    if _models_cache is None:
+        _models_cache = load_all_models()
+    return _models_cache
 
 
 def _get_model(store_id: int):
-    if store_id not in _models:
-        _models[store_id] = load_model(store_id)
-    return _models[store_id]
+    models = _get_all_models()
+    if store_id not in models:
+        raise FileNotFoundError(
+            f"No hay modelo Prophet consolidado para store_id={store_id}. "
+            f"Revisá que se haya corrido consolidate_models() incluyendo esa tienda."
+        )
+    return models[store_id]
 
 
 def predict(store_id: int, horizon_days: int, sentiment_score: float = None) -> dict:
     """
     Args:
-        store_id: ID de la tienda (debe estar en SALES_STORE_SUBSET, ver config.py).
+        store_id: ID de la tienda (debe estar dentro del archivo consolidado).
         horizon_days: Días a pronosticar hacia el futuro (7, 15 o 30).
-        sentiment_score: Sentimiento promedio (−1.0 a 1.0 o 0.0 a 1.0) para usar como regressor.
+        sentiment_score: Sentimiento promedio (0.0–1.0) para usar como regressor.
                          None si el modelo fue entrenado sin esta feature.
 
     Returns:

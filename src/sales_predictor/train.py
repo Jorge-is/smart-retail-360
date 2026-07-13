@@ -19,6 +19,7 @@ from src.sales_predictor.prophet_model import (
     build_model as build_prophet,
     save_model as save_prophet,
     load_model as load_prophet,
+    consolidate_models,
 )
 from src.sales_predictor.xgboost_model import (
     train_xgboost_global,
@@ -182,6 +183,7 @@ def train_all(store_subset: list[int] | None = None) -> None:
     sentiment_series = _load_sentiment_series()
 
     prophet_results = train_prophet_for_stores(raw_df, sentiment_series, store_subset)
+    consolidate_models(store_subset)  # junta todos los .joblib individuales en uno solo
     xgboost_global_result = train_xgboost_all_stores(raw_df, sentiment_series, store_csv_path)
 
     _save_metrics({
