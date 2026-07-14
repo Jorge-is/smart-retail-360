@@ -105,12 +105,94 @@ def render() -> None:
                         st.error(f"Error al analizar la reseña: {e}")
 
     with tab_batch:
-        st.markdown("Subi un CSV con columna `review_body`.")
+        st.markdown("Subí un CSV con columna `review_body`.")
         csv_file = st.file_uploader("CSV de reseñas", type=["csv"], key="csv_sentimiento")
+
         if csv_file:
             import polars as pl
-            df = pl.read_csv(csv_file)
-            st.dataframe(df.head())
+
+            try:
+                df = pl.read_csv(csv_file)
+            except Exception as e:
+                st.error(f"No se pudo leer el CSV: {e}")
+                df = None
+
+            if df is not None:
+                if "review_body" not in df.columns:
+                    st.error(
+                        "El CSV necesita una columna llamada `review_body` con el texto de "
+                        "cada reseña. Columnas encontradas: " + ", ".join(df.columns)
+                    )
+                else:
+                    st.dataframe(df.head())
+                    n_rows = df.height
+                    st.caption(f"{n_rows} filas detectadas.")
+
+                    if st.button("Analizar lote", type="primary"):
+                        from src.sentiment_analyzer.predict import predict
+
+                        texts = df["review_body"].to_list()
+                        batch_counts = {"positive": 0, "neutral": 0, "negative": 0}
+                        skipped = 0
+
+                        progress = st.progress(0.0, text="Analizando reseñas...")
+                        model_error = None
+                        for i, text in enumerate(texts):
+                            if not text or not str(text).strip():
+                                skipped += 1
+                            else:
+                                try:
+                                    result = predict(str(text), model_name=model_name)
+                                    batch_counts[result["sentiment"]] = batch_counts.get(result["sentiment"], 0) + 1
+                                except FileNotFoundError as e:
+                                    model_error = str(e)
+                                    break
+                                except Exception:
+                                    skipped += 1
+                            progress.progress((i + 1) / len(texts), text=f"Analizando reseñas... ({i + 1}/{len(texts)})")
+                        progress.empty()
+
+                        if model_error:
+                            st.error(f"Modelo no disponible: {model_error}")
+                        else:
+                            analyzed = sum(batch_counts.values())
+                            if analyzed == 0:
+                                st.warning("No se pudo analizar ninguna reseña del archivo (¿filas vacías?).")
+                            else:
+                                # Mismo estado global que actualiza la reseña individual —
+                                # así el promedio de sentimiento de la sesión (avg_sentiment)
+                                # queda actualizado para Predicción de Ventas sin tocar nada ahí.
+                                counts = st.session_state["sentiment_counts"]
+                                for sentiment, n in batch_counts.items():
+                                    counts[sentiment] = counts.get(sentiment, 0) + n
+                                st.session_state["reviews_analyzed"] = (
+                                    st.session_state.get("reviews_analyzed", 0) + analyzed
+                                )
+                                total = sum(counts.values())
+                                st.session_state["avg_sentiment"] = counts.get("positive", 0) / total if total else None
+                                st.session_state["last_sentiment_prediction"] = max(batch_counts, key=batch_counts.get)
+                                model_display = _M2_MODEL_DISPLAY_NAME.get(model_name, model_name)
+                                st.session_state["activity_log"].append({
+                                    "modulo": "Sentimiento",
+                                    "evento": f"Lote CSV — {analyzed} reseñas ({model_display})",
+                                    "estado": "OK",
+                                })
+
+                                msg = f"{analyzed} reseñas analizadas"
+                                if skipped:
+                                    msg += f", {skipped} filas omitidas (vacías o con error)"
+                                st.success(msg + ".")
+
+                                st.plotly_chart(sentiment_pie(batch_counts), use_container_width=True)
+                                render_kpi_row([
+                                    {"label": "Positivas", "value": str(batch_counts["positive"])},
+                                    {"label": "Neutras", "value": str(batch_counts["neutral"])},
+                                    {"label": "Negativas", "value": str(batch_counts["negative"])},
+                                ])
+                                st.info(
+                                    f"Sentimiento promedio de la sesión: **{st.session_state['avg_sentiment']:.0%}** "
+                                    f"— ya se usa como regressor en Predicción de Ventas."
+                                )
 
     with tab_eval:
         st.caption("Resultados de evaluación sobre el conjunto de test — datos del entrenamiento en Colab.")
