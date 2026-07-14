@@ -87,11 +87,32 @@ def add_sentiment_regressor(df: pd.DataFrame, sentiment_series: pd.Series) -> pd
 
 def build_sentiment_series_from_csv(csv_path, predict_fn: Callable[[str], dict]) -> pd.Series:
     """
-    Lee un CSV de reseñas (columnas: date, review_text), corre predict_fn
-    (src.sentiment_analyzer.predict.predict) sobre cada texto y agrupa por
-    fecha, usando scores["positive"] como score numérico 0-1.
+    Lee un CSV de reseñas y devuelve una serie diaria de sentimiento
+    (índice=fecha, valor=score 0-1).
+
+    Si el CSV ya trae una columna "sentiment_score" (la genera
+    generate_synthetic_reviews()), se usa DIRECTO, sin volver a correr el
+    modelo del módulo 2 sobre el texto.
+
+    Por qué: se probó re-inferir con BETO sobre estas reseñas sintéticas
+    y el modelo no generaliza a este dominio (reseñas de atención en
+    local físico, vocabulario distinto al de Amazon Reviews) — da un
+    score de "positivo" prácticamente constante (~0.05) sin importar el
+    contenido real de la reseña. Con la entrada casi sin variación,
+    Prophet no puede aprender una relación real y el coeficiente del
+    regressor termina siendo enorme e inestable, arruinando cualquier
+    pronóstico con sentiment_score distinto al ~0.05 que vio en
+    entrenamiento. Por eso el score ahora se diseña directamente al
+    generar el CSV, en vez de depender de una inferencia que en la
+    práctica no funciona para este dominio.
+
+    Si el CSV NO trae esa columna (por ejemplo, uno armado a mano con
+    reseñas reales), se sigue corriendo predict_fn() como antes.
     """
     reviews_df = pd.read_csv(csv_path, parse_dates=["date"])
+
+    if "sentiment_score" in reviews_df.columns:
+        return reviews_df.groupby("date")["sentiment_score"].mean()
 
     scores = []
     for _, row in reviews_df.iterrows():
@@ -99,8 +120,7 @@ def build_sentiment_series_from_csv(csv_path, predict_fn: Callable[[str], dict])
         scores.append(result["scores"]["positive"])
     reviews_df["sentiment_score"] = scores
 
-    daily_series = reviews_df.groupby("date")["sentiment_score"].mean()
-    return daily_series
+    return reviews_df.groupby("date")["sentiment_score"].mean()
 
 _POSITIVE_REVIEW_TEMPLATES = [
     "Excelente atención, encontré todo lo que buscaba muy rápido.",
@@ -138,7 +158,27 @@ def generate_synthetic_reviews(
     noise: float = 0.3,
     seed: int = 42,
 ) -> pd.DataFrame:
-    
+    """
+    Genera reseñas sintéticas EN ESPAÑOL cuyo sentimiento está
+    correlacionado con las ventas REALES de una tienda de referencia.
+
+    Devuelve columnas: date, review_text, sentiment_score.
+
+    El sentiment_score se asigna DIRECTO (no se infiere después con el
+    modelo del módulo 2) — ver la nota en build_sentiment_series_from_csv()
+    sobre por qué: BETO no generaliza a este dominio y da un score casi
+    constante sin importar el contenido, lo que arruina el regressor de
+    Prophet. Acá se diseña un score con rango amplio (0.05–0.95) y buena
+    varianza, para que el regressor tenga una señal real y estable con la
+    que entrenar.
+
+    Args:
+        reference_sales: DataFrame con columnas 'ds' e 'y' — el mismo
+            formato que devuelve prepare_prophet_df() para UNA tienda.
+        noise: proporción de días (0-1) en que el sentimiento se asigna
+            al azar, ignorando la tendencia real de ventas.
+        seed: semilla para reproducibilidad.
+    """
     import random
 
     rng = random.Random(seed)
@@ -155,11 +195,17 @@ def generate_synthetic_reviews(
 
         if above:
             text = rng.choice(_POSITIVE_REVIEW_TEMPLATES)
+            score = rng.uniform(0.6, 0.95)
         else:
             text = rng.choice(_NEUTRAL_REVIEW_TEMPLATES + _NEGATIVE_REVIEW_TEMPLATES)
+            score = rng.uniform(0.05, 0.4)
 
         n_reviews = rng.choice([1, 1, 2])  # mayoría 1 reseña/día, a veces 2
         for _ in range(n_reviews):
-            rows.append({"date": row["ds"].strftime("%Y-%m-%d"), "review_text": text})
+            rows.append({
+                "date": row["ds"].strftime("%Y-%m-%d"),
+                "review_text": text,
+                "sentiment_score": round(score, 3),
+            })
 
     return pd.DataFrame(rows)
