@@ -24,6 +24,7 @@ from src.sales_predictor.prophet_model import (
 from src.sales_predictor.xgboost_model import (
     train_xgboost_global,
     save_global_model,
+    load_global_model,
     prepare_global_features,
 )
 from src.sentiment_analyzer.predict import predict as predict_sentiment
@@ -120,12 +121,15 @@ def train_prophet_for_stores(
     raw_df: pd.DataFrame,
     sentiment_series: pd.Series | None,
     store_ids: list[int],
+    force_retrain: bool = False,
 ) -> list[dict]:
     existing = _load_existing_metrics()
     results_by_store = {r["store_id"]: r for r in existing.get("prophet_by_store", [])}
 
     for store_id in store_ids:
-        results_by_store[store_id] = train_store(raw_df, store_id, sentiment_series)
+        results_by_store[store_id] = train_store(
+            raw_df, store_id, sentiment_series, force_retrain=force_retrain
+        )
         _save_metrics({
             "prophet_by_store": list(results_by_store.values()),
             "xgboost_global": existing.get("xgboost_global"),
@@ -171,6 +175,47 @@ def train_xgboost_all_stores(
         "used_sentiment_regressor": use_sentiment,
         "xgboost": {"metrics": xgb_metrics, "viability": xgb_viability},
     }
+
+
+def backfill_xgboost_metrics() -> dict:
+    raw_path = DATA_DIR / "raw" / "rossmann" / "train.csv"
+    store_csv_path = DATA_DIR / "raw" / "rossmann" / "store.csv"
+    raw_df = pd.read_csv(raw_path, parse_dates=["Date"])
+
+    df = prepare_global_df(raw_df)
+    df = add_store_features(df, store_csv_path)
+
+    use_sentiment = SALES_SENTIMENT_CSV_PATH.exists()
+    if use_sentiment:
+        sentiment_series = _load_sentiment_series()
+        df = add_sentiment_regressor(df, sentiment_series)
+
+    cutoff = df["ds"].max() - pd.Timedelta(days=30)
+    train_df = df[df["ds"] <= cutoff]
+    test_df = df[df["ds"] > cutoff]
+
+    model = load_global_model()
+    X_test, y_test = prepare_global_features(test_df, sentiment_col=use_sentiment)
+    y_pred = model.predict(X_test)
+
+    xgb_metrics = compute_regression_metrics(y_test.values, y_pred)
+    xgb_viability = assess_regression_viability(xgb_metrics, model_name="xgboost")
+
+    xgboost_global_result = {
+        "scope": "global",
+        "n_stores": int(df["store_id"].nunique()),
+        "n_train_rows": int(len(train_df)),
+        "n_test_rows": int(len(test_df)),
+        "used_sentiment_regressor": use_sentiment,
+        "xgboost": {"metrics": xgb_metrics, "viability": xgb_viability},
+    }
+
+    existing = _load_existing_metrics()
+    existing["xgboost_global"] = xgboost_global_result
+    _save_metrics(existing)
+
+    logger.info("xgboost_global agregado a %s", SALES_METRICS_PATH)
+    return xgboost_global_result
 
 
 def train_all(store_subset: list[int] | None = None) -> None:
