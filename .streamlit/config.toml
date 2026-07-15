@@ -1,0 +1,14 @@
+[theme]
+base = "light"
+
+primaryColor = "#3D3AC2"
+backgroundColor = "#F5F6FB"
+secondaryBackgroundColor = "#E7E9F7"
+textColor = "#171833"
+borderColor = "#D6D9EE"
+
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap, sans-serif"
+headingFont = "Space Grotesk:https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap, sans-serif"
+
+baseRadius = "0.375rem"
+showSidebarBorder = true
