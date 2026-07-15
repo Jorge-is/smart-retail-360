@@ -27,7 +27,6 @@ streamlit>=1.28
 plotly>=5.17
 matplotlib>=3.7
 seaborn>=0.13         # Para EDA
-streamlit-option-menu>=0.3
 
 # Storage
 joblib>=1.3

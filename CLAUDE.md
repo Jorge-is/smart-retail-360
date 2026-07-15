@@ -64,9 +64,9 @@ src/<module>/
 
 ### Streamlit app
 
-`app/app.py` is the single entry point. Pages live in `app/views/` as modules with a `render()` function — the router in `app.py` calls `render()` after the `option_menu` selection. Shared UI lives in `app/components/`.
+`app/app.py` is the single entry point. Pages live in `app/views/` as modules with a `render()` function — `app.py` registers each `render` callable via `st.Page(...)` and routes with `st.navigation(...).run()`. Shared UI lives in `app/components/`.
 
-Note: the directory is deliberately named `views/`, not `pages/` — Streamlit auto-generates a native multi-page nav menu for any `pages/` folder next to the entry script, which conflicted with the custom `option_menu` router (empty screens when clicking the phantom nav items).
+Note: the directory is named `views/`, not `pages/` — Streamlit auto-generates a native multi-page nav menu for any `pages/` folder next to the entry script, which conflicted with the router when the app used a custom `streamlit-option-menu` sidebar (empty screens when clicking the phantom nav items). Kept as `views/` after migrating to `st.navigation`/`st.Page` to avoid re-introducing that risk.
 
 M3 (sales predictor) page is fully wired to `src.sales_predictor.predict`, with a "Comparación de modelos" tab reading `models/sales_predictor/metrics.json`.
 

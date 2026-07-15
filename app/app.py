@@ -1,5 +1,4 @@
 import streamlit as st
-from streamlit_option_menu import option_menu
 import sys
 import os
 from pathlib import Path
@@ -47,43 +46,8 @@ if "last_sentiment_prediction" not in st.session_state:
 if "activity_log" not in st.session_state:
     st.session_state["activity_log"] = []
 
-# Sidebar
-with st.sidebar:
 
-    logo_path = Path("app/assets/logo.png")
-
-    if logo_path.exists():
-        st.image(str(logo_path))
-    else:
-        st.title("SmartRetail 360")
-
-    selected = option_menu(
-    menu_title="Módulos",
-    options=[
-        "Inicio",
-        "EDA",
-        "Clasificador de Productos",
-        "Análisis de Sentimiento",
-        "Dashboard Integrado",
-        "Predicción de Ventas",
-    ],
-    icons=[
-        "house",
-        "bar-chart",
-        "camera",
-        "chat-dots",
-        "speedometer2",
-        "graph-up-arrow",
-    ],
-    default_index=0,
-    )
-
-    st.divider()
-    st.caption("Proyecto Final — Inteligencia Artificial · 2026")
-
-# Routing
-if selected == "Inicio":
-
+def render_inicio() -> None:
     st.title("SmartRetail 360")
     st.subheader("Plataforma de IA para e-commerce")
 
@@ -120,17 +84,28 @@ if selected == "Inicio":
     st.divider()
     st.markdown("Usa el menú lateral para navegar entre módulos.")
 
-elif selected == "EDA":
-    render_eda()
 
-elif selected == "Clasificador de Productos":
-    render_clasificador()
+with st.sidebar:
+    logo_path = Path("app/assets/logo.png")
 
-elif selected == "Análisis de Sentimiento":
-    render_sentimiento()
+    if logo_path.exists():
+        st.image(str(logo_path))
+    else:
+        st.title("SmartRetail 360")
 
-elif selected == "Dashboard Integrado":
-    render_dashboard()
+pages = [
+    st.Page(render_inicio, title="Inicio", icon=":material/home:", url_path="inicio", default=True),
+    st.Page(render_eda, title="EDA", icon=":material/bar_chart:", url_path="eda"),
+    st.Page(render_clasificador, title="Clasificador de Productos", icon=":material/photo_camera:", url_path="clasificador"),
+    st.Page(render_sentimiento, title="Análisis de Sentimiento", icon=":material/chat:", url_path="sentimiento"),
+    st.Page(render_dashboard, title="Dashboard Integrado", icon=":material/speed:", url_path="dashboard-integrado"),
+    st.Page(render_prediccion, title="Predicción de Ventas", icon=":material/trending_up:", url_path="prediccion-ventas"),
+]
 
-elif selected == "Predicción de Ventas":
-    render_prediccion()
+pg = st.navigation(pages, position="sidebar")
+
+with st.sidebar:
+    st.divider()
+    st.caption("Proyecto Final — Inteligencia Artificial · 2026")
+
+pg.run()
