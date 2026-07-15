@@ -102,7 +102,7 @@ with st.sidebar:
     logo_path = Path("app/assets/logo.png")
 
     if logo_path.exists():
-        st.image(str(logo_path))
+        st.image(str(logo_path), width=220)
     else:
         st.title("SmartRetail 360")
 
