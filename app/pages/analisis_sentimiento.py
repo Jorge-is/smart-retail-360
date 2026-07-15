@@ -3,9 +3,6 @@ import streamlit as st
 from components.charts import sentiment_pie, confidence_bar_chart
 from components.metrics_card import render_kpi_row
 from components.sidebar import model_info_card
-from src.utils.logging_config import get_logger
-
-logger = get_logger(__name__)
 
 _M2_LABELS = ["Negativo", "Neutro", "Positivo"]
 
@@ -133,6 +130,9 @@ def render() -> None:
 
                     if st.button("Analizar lote", type="primary"):
                         from src.sentiment_analyzer.predict import predict
+                        from src.utils.logging_config import get_logger
+
+                        logger = get_logger(__name__)
 
                         texts = df["review_body"].to_list()
                         batch_counts = {"positive": 0, "neutral": 0, "negative": 0}

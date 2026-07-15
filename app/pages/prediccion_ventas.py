@@ -6,9 +6,6 @@ import streamlit as st
 from components.charts import sales_forecast_chart
 from components.metrics_card import render_kpi_row
 from components.sidebar import model_info_card
-from src.utils.logging_config import get_logger
-
-logger = get_logger(__name__)
 
 
 _RECOMMENDATION_STYLE = {
@@ -29,6 +26,9 @@ def _load_metrics() -> dict | None:
 
 @st.cache_resource(show_spinner="Calculando métricas de XGBoost global (primera vez)...")
 def _try_auto_backfill_xgboost() -> dict | None:
+    from src.utils.logging_config import get_logger
+
+    logger = get_logger(__name__)
     try:
         from src.sales_predictor.train import backfill_xgboost_metrics
         return backfill_xgboost_metrics()
