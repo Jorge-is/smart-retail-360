@@ -2,7 +2,10 @@ import streamlit as st
 
 from components.charts import (
     sentiment_pie,
-    class_distribution_chart
+    class_distribution_chart,
+    promo_effect_chart,
+    weekday_sales_chart,
+    storetype_distribution_chart,
 )
 
 
@@ -14,10 +17,11 @@ def render() -> None:
         "Exploración histórica de ventas, productos y reseñas"
     )
 
-    tab1, tab2 = st.tabs(
+    tab1, tab2, tab3 = st.tabs(
         [
             ":material/checkroom: Fashion Products",
             ":material/reviews: Amazon Reviews",
+            ":material/store: Rossmann Sales",
         ]
     )
 
@@ -73,4 +77,48 @@ def render() -> None:
               - Ambos modelos (RF y BETO) tienen dificultad con reseñas 3-estrellas
               - Ratio de desbalance requiere técnicas especiales de entrenamiento
             - **Longitud media de reseña:** ~60 palabras (BETO acepta hasta ~256 tokens)
+            """)
+
+    with tab3:
+        st.subheader("Ventas históricas — Rossmann Store Sales")
+        st.caption("1,017,209 registros de venta diaria de 1,115 tiendas (2013-01-01 a 2015-07-31)")
+
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Tiendas", "1,115")
+        col2.metric("Filas tras filtrar cierres", "844,392")
+        col3.metric("% días con tienda cerrada", "16.99%")
+
+        st.plotly_chart(
+            promo_effect_chart({"0": 5929.41, "1": 8228.28}),
+            use_container_width=True
+        )
+
+        st.plotly_chart(
+            weekday_sales_chart({
+                "Lunes": 7057, "Martes": 6960, "Miércoles": 6754,
+                "Jueves": 6785, "Viernes": 7050, "Sábado": 6236, "Domingo": 8090,
+            }),
+            use_container_width=True
+        )
+
+        st.plotly_chart(
+            storetype_distribution_chart({"a": 602, "b": 17, "c": 148, "d": 348}),
+            use_container_width=True
+        )
+
+        with st.expander("Hallazgos principales", icon=":material/insights:"):
+            st.markdown("""
+            - **Filtrado obligatorio:** 16.99% de las filas son de tienda cerrada
+              (`Open == 0`) — se excluyen antes de entrenar Prophet, ya que distorsionan
+              la serie de tiempo (un cierre no es una caída real de demanda).
+            - **Efecto de Promo:** +38.8% de venta promedio con promoción activa
+              ($8,228 vs $5,929) — candidato fuerte a regressor de Prophet, junto con
+              el `sentiment` proveniente de M2.
+            - **Estacionalidad:** domingo tiene la venta promedio más alta (muchas
+              tiendas cierran ese día, las que abren compensan); diciembre es
+              claramente el mes de mayor venta (temporada navideña).
+            - **StoreType:** el tipo "b" vende más en promedio, pero representa
+              solo 17 de 1,115 tiendas — variable muy desbalanceada.
+            - **Estado:** EDA completo. Entrenamiento de Prophet pendiente
+              (ver `notebooks/00_eda_ventas.ipynb` y `src/sales_predictor/train.py`).
             """)
