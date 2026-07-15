@@ -84,12 +84,6 @@ def render() -> None:
         avg_sentiment = st.session_state.get("avg_sentiment")
 
         st.markdown("##### Regressor de sentimiento")
-        st.caption(
-            "⚠️ Los modelos entrenados usaron reseñas sintéticas generadas a partir de la "
-            "propia tendencia de ventas (ver hallazgos en la pestaña EDA → Rossmann Sales). "
-            "El valor que ajustes acá simula el regressor, pero no representa una relación "
-            "causal validada entre sentimiento real y ventas."
-        )
         if avg_sentiment is not None:
             st.caption(
                 f"Calculado a partir de las reseñas analizadas en esta sesión "

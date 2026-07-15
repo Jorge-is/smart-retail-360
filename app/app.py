@@ -111,10 +111,10 @@ if selected == "Inicio":
         )
 
     with col3:
-        st.warning(
+        st.success(
             ":material/trending_up: **Predicción de Ventas**\n\n"
-            "Prophet (Meta).\n\n"
-            "Módulo en desarrollo."
+            "Prophet (Meta) + XGBoost.\n\n"
+            "Pronostica demanda por tienda."
         )
 
     st.divider()
