@@ -71,6 +71,45 @@ def class_distribution_chart(data: dict) -> go.Figure:
     return fig
 
 
+def promo_effect_chart(promo_avg: dict) -> go.Figure:
+    """Barras: venta promedio sin promo (0) vs con promo (1)."""
+
+    labels = {"0": "Sin promoción", "1": "Con promoción"}
+    fig = px.bar(
+        x=[labels[k] for k in promo_avg.keys()],
+        y=list(promo_avg.values()),
+        color=[labels[k] for k in promo_avg.keys()],
+        color_discrete_map={"Sin promoción": "#95A5A6", "Con promoción": "#2ECC71"},
+        title="Venta promedio: sin promo vs con promo",
+    )
+    fig.update_layout(xaxis_title="", yaxis_title="Venta promedio", showlegend=False)
+    return fig
+
+
+def weekday_sales_chart(weekday_avg: dict) -> go.Figure:
+    """Barras de venta promedio por día de la semana."""
+
+    fig = px.bar(
+        x=list(weekday_avg.keys()),
+        y=list(weekday_avg.values()),
+        title="Venta promedio por día de la semana",
+    )
+    fig.update_layout(xaxis_title="", yaxis_title="Venta promedio")
+    return fig
+
+
+def storetype_distribution_chart(storetype_counts: dict) -> go.Figure:
+    """Distribución de tiendas por StoreType."""
+
+    fig = px.bar(
+        x=list(storetype_counts.keys()),
+        y=list(storetype_counts.values()),
+        title="Cantidad de tiendas por StoreType",
+    )
+    fig.update_layout(xaxis_title="StoreType", yaxis_title="N° de tiendas")
+    return fig
+
+
 def sales_forecast_chart(
     forecast: list[dict],
     historical: pd.DataFrame = None
