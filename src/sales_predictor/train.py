@@ -70,6 +70,12 @@ def train_store(
     train_df = df[df["ds"] <= cutoff]
     test_df = df[df["ds"] > cutoff]
 
+    if test_df.empty:
+        raise ValueError(
+            f"Tienda {store_id}: no quedan filas en el rango de test (últimos 30 días) "
+            f"tras filtrar días cerrados. Revisá el histórico de esta tienda."
+        )
+
     model_path = sales_prophet_path(store_id)
     if model_path.exists() and not force_retrain:
         prophet_model = load_prophet(store_id)

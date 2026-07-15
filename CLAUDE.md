@@ -16,11 +16,14 @@ pytest tests/test_sentiment_analyzer.py -k TestPreprocess  # clase específica
 # Entrenamiento (diseñado para correr en Google Colab, no local)
 python -m src.image_classifier.train
 python -m src.sentiment_analyzer.train
+python -c "from src.sales_predictor.train import train_all; train_all()"
 ```
 
 ## Architecture
 
-Two active AI modules (M1 + M2) plus one optional placeholder (M3), each exposing a single `predict()` function. The Streamlit dashboard calls only those functions — it has no direct knowledge of TensorFlow, scikit-learn, or Prophet.
+Three active AI modules (M1, M2, M3), each exposing a single `predict()` function. The Streamlit dashboard calls only those functions — it has no direct knowledge of TensorFlow, scikit-learn, Prophet, or XGBoost.
+
+M3 (sales_predictor) trains Prophet per-store and XGBoost globally, but only over a 10-store subset of Rossmann (`SALES_STORE_SUBSET` in `src/utils/config.py`), not the full 1115 stores. Its sentiment regressor comes from synthetic reviews generated from the sales trend itself (`generate_synthetic_reviews()` in `features.py`) — a known methodological limitation, not real independent review data. See `docs/api_contracts.md` for details.
 
 ### The predict() contract
 
@@ -29,7 +32,7 @@ Every module exposes the same pattern in `src/<module>/predict.py`:
 ```python
 # image_classifier   →  predict(image: PIL.Image, model_name: str = "efficientnet") -> dict
 # sentiment_analyzer →  predict(text: str, model_name: str = "beto") -> dict
-# sales_predictor    →  predict(store_id, horizon_days, sentiment_score) -> dict  [optional/placeholder]
+# sales_predictor    →  predict(store_id, horizon_days, sentiment_score, reference_date=None) -> dict
 ```
 
 Full I/O spec is in `docs/api_contracts.md`. This is the integration boundary — don't break it.
@@ -63,7 +66,7 @@ src/<module>/
 
 `app/app.py` is the single entry point. Pages live in `app/pages/` as modules with a `render()` function — the router in `app.py` calls `render()` after the `option_menu` selection. Shared UI lives in `app/components/`.
 
-M3 (sales predictor) page shows a "Módulo en desarrollo" placeholder — do not wire it to real model calls.
+M3 (sales predictor) page is fully wired to `src.sales_predictor.predict`, with a "Comparación de modelos" tab reading `models/sales_predictor/metrics.json`.
 
 ### Config
 
@@ -77,6 +80,7 @@ All paths and constants come from `src/utils/config.py`, which reads `.env` via 
 | image_classifier | `models/image_classifier/mobilenetv2.keras` | Keras `model.save` |
 | sentiment_analyzer | `models/sentiment_analyzer/tfidf_baseline.pkl` | joblib Pipeline (RandomForest) |
 | sentiment_analyzer | `models/sentiment_analyzer/beto_finetuned/` | HuggingFace `save_pretrained` |
-| sales_predictor | `models/sales_predictor/prophet_model.joblib` | joblib Prophet (optional) |
+| sales_predictor | `models/sales_predictor/prophet_models.joblib` | joblib dict `{store_id: Prophet}`, consolidado (10 tiendas) |
+| sales_predictor | `models/sales_predictor/xgboost_global.joblib` | joblib `LogTargetXGBRegressor`, un solo modelo global |
 
 Models are in `.gitignore`. Train in Colab (notebooks in `notebooks/`) and copy the output files into `models/`.

@@ -86,19 +86,27 @@ Esto permite que el dashboard y los tests sean independientes del modelo subyace
 
 ---
 
-## Módulo 3 — Predicción de ventas (opcional)
+## Módulo 3 — Predicción de ventas
 
-> **Estado:** placeholder. No se trabaja activamente en esta entrega.
-> Si se retoma, ver `notebooks/04_sales_predictor_prophet.ipynb`.
+> **Estado:** activo. Prophet (por tienda) + XGBoost (global, comparación) entrenados
+> sobre un subconjunto de 10 tiendas de Rossmann (`SALES_STORE_SUBSET` en
+> `src/utils/config.py`), no las 1115 completas.
+>
+> ⚠️ **Limitación conocida:** el regressor `sentiment` usado en el entrenamiento
+> proviene de reseñas sintéticas (`generate_synthetic_reviews()`) derivadas de la
+> propia tendencia de ventas de cada tienda, no de reseñas reales independientes.
+> Cualquier mejora de MAPE atribuida a ese regressor no es una relación causal validada.
+> Ver `notebooks/04_sales_predictor_prophet.ipynb` y `notebooks/00_eda_ventas.ipynb`.
 
-**Función:** `src.sales_predictor.predict.predict(store_id, horizon_days, sentiment_score)`
+**Función:** `src.sales_predictor.predict.predict(store_id, horizon_days, sentiment_score, reference_date=None)`
 
 **Input:**
 | Parámetro | Tipo | Descripción |
 |-----------|------|-------------|
-| `store_id` | `int` | ID de la tienda (1–1115 en Rossmann). |
+| `store_id` | `int` | ID de tienda — debe estar en `SALES_STORE_SUBSET` (10 tiendas entrenadas), no el rango completo 1–1115. |
 | `horizon_days` | `int` | Días a pronosticar: típicamente 7, 15 o 30. |
-| `sentiment_score` | `float \| None` | Score de sentimiento (0.0–1.0). `None` si no se usa como regressor. |
+| `sentiment_score` | `float \| None` | Score de sentimiento (0.0–1.0). Si el modelo fue entrenado con regressor de sentimiento y se pasa `None`, se usa un valor neutral (0.5) internamente. |
+| `reference_date` | `date \| None` | Fecha desde la que se cuenta el horizonte. `None` usa la fecha actual. |
 
 **Output:**
 ```json
@@ -106,9 +114,12 @@ Esto permite que el dashboard y los tests sean independientes del modelo subyace
   "forecast": [
     {"date": "2024-03-01", "predicted_sales": 4823.0, "lower": 3900.0, "upper": 5740.0}
   ],
-  "metrics": {"mae": 312.5, "rmse": 420.1, "mape": 8.7}
+  "metrics": {"mae": null, "rmse": null, "mape": null},
+  "warning": "opcional — presente si el pronóstico tuvo valores negativos recortados a 0"
 }
 ```
+
+`metrics` siempre viene en `null` en la respuesta de `predict()` — las métricas reales se calculan durante el entrenamiento y se guardan aparte en `models/sales_predictor/metrics.json` (leído por la pestaña "Comparación de modelos" del dashboard).
 
 ---
 
@@ -141,3 +152,25 @@ Devuelve un `matplotlib.Figure` con el heatmap de la matriz de confusión.
     "recommendation": "Apto para producción" | "Requiere mejoras" | "No viable"
 }
 ```
+
+Válido para módulos de clasificación (`image_classifier`, `sentiment_analyzer`). Para `sales_predictor` usar `assess_regression_viability()`.
+
+### `metrics.compute_regression_metrics(y_true, y_pred)`
+
+Usado por Módulo 3 (forecasting). Devuelve MAE, RMSE y MAPE:
+
+```python
+{"mae": float, "rmse": float, "mape": float}
+```
+
+### `viability.assess_regression_viability(metrics, model_name="prophet")`
+
+```python
+{
+    "is_viable": bool,
+    "reasons": list[str],
+    "recommendation": "Apto para producción" | "Requiere mejoras" | "No viable"
+}
+```
+
+Umbrales: MAPE < 15% → apto; 15–25% → requiere mejoras; ≥ 25% → no viable. `model_name`: `"prophet"` | `"xgboost"`.

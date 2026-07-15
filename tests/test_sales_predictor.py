@@ -19,13 +19,28 @@ class TestFeatures:
     def test_prepare_prophet_df_columns(self):
         from src.sales_predictor.features import prepare_prophet_df
         raw = pd.DataFrame({
-            "Store": [1, 1, 2],
-            "Date": ["2023-01-01", "2023-01-02", "2023-01-01"],
-            "Sales": [100, 200, 300],
+            "Store": [1, 1, 1, 2],
+            "Date": ["2023-01-01", "2023-01-02", "2023-01-03", "2023-01-01"],
+            "Sales": [100, 200, 0, 300],
+            "Open": [1, 1, 0, 1],
         })
         result = prepare_prophet_df(raw, store_id=1)
         assert list(result.columns) == ["ds", "y"]
-        assert len(result) == 2
+        assert len(result) == 2  # el día cerrado (Open=0) se filtra
+
+
+class TestTrainStore:
+    def test_empty_test_window_raises(self):
+        from src.sales_predictor.train import train_store
+
+        raw = pd.DataFrame({
+            "Store": [1] * 5,
+            "Date": pd.date_range("2023-01-01", periods=5),
+            "Sales": [100, 110, 120, 130, 140],
+            "Open": [1, 1, 1, 1, 1],
+        })
+        with pytest.raises(ValueError):
+            train_store(raw, store_id=1, sentiment_series=None)
 
 
 class TestPredictContract:

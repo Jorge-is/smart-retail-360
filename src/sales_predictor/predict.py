@@ -37,8 +37,18 @@ def predict(
 
     model = _get_model(store_id)
     future = model.make_future_dataframe(periods=horizon_days)
-    if sentiment_score is not None and "sentiment" in model.extra_regressors:
-        future["sentiment"] = sentiment_score
+    if "sentiment" in model.extra_regressors:
+        if sentiment_score is not None:
+            future["sentiment"] = sentiment_score
+        else:
+            # El modelo fue entrenado con el regressor de sentimiento y lo requiere
+            # en cada fila de `future` — sin valor explícito, usamos un neutral (0.5)
+            # en vez de dejar que Prophet explote por columna faltante.
+            logger.warning(
+                "store_id=%s requiere 'sentiment' pero no se pasó sentiment_score; usando neutral 0.5",
+                store_id,
+            )
+            future["sentiment"] = 0.5
     forecast = model.predict(future)
     result_df = forecast.tail(horizon_days)[["ds", "yhat", "yhat_lower", "yhat_upper"]].reset_index(drop=True)
 

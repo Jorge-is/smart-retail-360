@@ -41,7 +41,6 @@ models/**/beto_finetuned/
 !models/sales_predictor/.gitkeep
 !models/sales_predictor/*.joblib
 
-
 # Jupyter
 .ipynb_checkpoints/
 *.ipynb_checkpoints

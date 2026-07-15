@@ -6,6 +6,9 @@ import streamlit as st
 from components.charts import sales_forecast_chart
 from components.metrics_card import render_kpi_row
 from components.sidebar import model_info_card
+from src.utils.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 _RECOMMENDATION_STYLE = {
@@ -30,6 +33,11 @@ def _try_auto_backfill_xgboost() -> dict | None:
         from src.sales_predictor.train import backfill_xgboost_metrics
         return backfill_xgboost_metrics()
     except Exception:
+        logger.exception("Falló el backfill automático de métricas XGBoost")
+        # No cachear el fallo: si fue transitorio (archivo temporalmente
+        # bloqueado, etc.) el próximo render() vuelve a intentarlo en vez
+        # de quedar pegado en None para el resto del proceso.
+        _try_auto_backfill_xgboost.clear()
         return None
 
 
@@ -76,6 +84,12 @@ def render() -> None:
         avg_sentiment = st.session_state.get("avg_sentiment")
 
         st.markdown("##### Regressor de sentimiento")
+        st.caption(
+            "⚠️ Los modelos entrenados usaron reseñas sintéticas generadas a partir de la "
+            "propia tendencia de ventas (ver hallazgos en la pestaña EDA → Rossmann Sales). "
+            "El valor que ajustes acá simula el regressor, pero no representa una relación "
+            "causal validada entre sentimiento real y ventas."
+        )
         if avg_sentiment is not None:
             st.caption(
                 f"Calculado a partir de las reseñas analizadas en esta sesión "

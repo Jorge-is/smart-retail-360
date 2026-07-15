@@ -92,9 +92,9 @@
 *Víctor — páginas y lógica de negocio:*
 - Página M1: selector de modelo, carga de imagen, visualización de resultados
 - Página M2: selector de modelo, input de texto, visualización de scores
-- Página EDA: visualizar hallazgos de ambos módulos
+- Página EDA: visualizar hallazgos de M1, M2 y M3 (Rossmann Sales)
 - Página Dashboard Integrado: flujo M1 → M2 con métricas combinadas
-- Página M3: mantener placeholder "Módulo en desarrollo"
+- Página M3: predicción de ventas funcional (Prophet + XGBoost), integrada con el sentimiento de sesión de M2
 - Integrar `src/evaluation/` para mostrar matrices de confusión en la UI
 
 *Jeremy — routing, componentes y deploy:*
@@ -266,6 +266,6 @@ Cada módulo entrega un análisis de viabilidad documentado usando `src/evaluati
 
 ## Nota sobre Módulo 3
 
-`src/sales_predictor/` y `notebooks/04_sales_predictor_prophet.ipynb` se mantienen en el repo como placeholder.
-Si al finalizar la semana 5 M1 y M2 están completos, el equipo evalúa retomar M3 con alcance reducido (Prophet únicamente, sin integración de sentimiento).
-La decisión la toma Jorge en la semana 6.
+Retomado por decisión de Jorge, con alcance ampliado respecto al plan original (Prophet + XGBoost + integración de sentimiento con M2, en vez de solo Prophet). Implementado por Víctor y Jeremy sobre un subconjunto de 10 tiendas de Rossmann (`SALES_STORE_SUBSET`).
+
+⚠️ El regressor de sentimiento usado en el entrenamiento proviene de reseñas sintéticas derivadas de la propia tendencia de ventas (`generate_synthetic_reviews()`), no de reseñas reales independientes — ver limitación documentada en `docs/api_contracts.md` y en la página EDA del dashboard.

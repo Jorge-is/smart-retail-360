@@ -5,7 +5,7 @@ import pandas as pd
 from xgboost import XGBRegressor
 
 from src.sales_predictor.features import add_temporal_features, STORE_META_COLS
-from src.utils.config import sales_xgboost_path, SALES_XGBOOST_GLOBAL_MODEL_PATH, SEED
+from src.utils.config import SALES_XGBOOST_GLOBAL_MODEL_PATH, SEED
 from src.utils.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -40,24 +40,10 @@ class LogTargetXGBRegressor:
         return np.expm1(self.model.predict(X))
 
 
-def prepare_features(df: pd.DataFrame, sentiment_col: bool = False) -> tuple[pd.DataFrame, pd.Series]:
-    df = add_temporal_features(df, date_col="ds")
-    cols = FEATURE_COLS + (["sentiment"] if sentiment_col and "sentiment" in df.columns else [])
-    return df[cols], df["y"]
-
-
 def prepare_global_features(df: pd.DataFrame, sentiment_col: bool = False) -> tuple[pd.DataFrame, pd.Series]:
     df = add_temporal_features(df, date_col="ds")
     cols = GLOBAL_FEATURE_COLS + (["sentiment"] if sentiment_col and "sentiment" in df.columns else [])
     return df[cols], df["y"]
-
-
-def train_xgboost(train_df: pd.DataFrame, use_sentiment: bool = False, **kwargs) -> XGBRegressor:
-    """Entrena un XGBRegressor por tienda sobre features temporales."""
-    X_train, y_train = prepare_features(train_df, sentiment_col=use_sentiment)
-    model = build_model(**kwargs)
-    model.fit(X_train, y_train)
-    return model
 
 
 def train_xgboost_global(train_df: pd.DataFrame, use_sentiment: bool = False, **kwargs) -> LogTargetXGBRegressor:
@@ -66,20 +52,6 @@ def train_xgboost_global(train_df: pd.DataFrame, use_sentiment: bool = False, **
     model = LogTargetXGBRegressor(**params)
     model.fit(X_train, y_train)
     return model
-
-
-def save_model(model: XGBRegressor, store_id: int) -> None:
-    path = sales_xgboost_path(store_id)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    joblib.dump(model, path)
-    logger.info("XGBoost (tienda %s) guardado en %s", store_id, path)
-
-
-def load_model(store_id: int) -> XGBRegressor:
-    path = sales_xgboost_path(store_id)
-    if not path.exists():
-        raise FileNotFoundError(f"No hay modelo XGBoost entrenado para store_id={store_id}.")
-    return joblib.load(path)
 
 
 def save_global_model(model: LogTargetXGBRegressor) -> None:

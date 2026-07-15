@@ -3,6 +3,9 @@ import streamlit as st
 from components.charts import sentiment_pie, confidence_bar_chart
 from components.metrics_card import render_kpi_row
 from components.sidebar import model_info_card
+from src.utils.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 _M2_LABELS = ["Negativo", "Neutro", "Positivo"]
 
@@ -147,7 +150,8 @@ def render() -> None:
                                 except FileNotFoundError as e:
                                     model_error = str(e)
                                     break
-                                except Exception:
+                                except Exception as e:
+                                    logger.warning("Fila %s omitida en el lote: %s", i, e)
                                     skipped += 1
                             progress.progress((i + 1) / len(texts), text=f"Analizando reseñas... ({i + 1}/{len(texts)})")
                         progress.empty()

@@ -119,6 +119,15 @@ def render() -> None:
               claramente el mes de mayor venta (temporada navideña).
             - **StoreType:** el tipo "b" vende más en promedio, pero representa
               solo 17 de 1,115 tiendas — variable muy desbalanceada.
-            - **Estado:** EDA completo. Entrenamiento de Prophet pendiente
-              (ver `notebooks/00_eda_ventas.ipynb` y `src/sales_predictor/train.py`).
+            - **Estado:** EDA completo. Prophet y XGBoost entrenados sobre un
+              subconjunto de 10 tiendas (ver `SALES_STORE_SUBSET` en
+              `src/utils/config.py`) — ver resultados en Predicción de Ventas.
+            - ⚠️ **Limitación conocida:** el regressor de `sentiment` que usa
+              Prophet en este subconjunto se calculó a partir de reseñas
+              sintéticas generadas con `generate_synthetic_reviews()`, cuyo
+              valor depende de si la venta de ese día estuvo por encima o por
+              debajo de su propia tendencia — no proviene de reseñas reales
+              independientes. Cualquier mejora de MAPE atribuida al regressor
+              de sentimiento no debe interpretarse como una relación causal
+              real entre opinión de clientes y ventas.
             """)
