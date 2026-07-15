@@ -108,11 +108,11 @@
 
 **Archivos clave:**
 - `app/app.py`
-- `app/pages/clasificador_productos.py`
-- `app/pages/analisis_sentimiento.py`
-- `app/pages/eda.py`
-- `app/pages/dashboard_integrado.py`
-- `app/pages/prediccion_ventas.py`
+- `app/views/clasificador_productos.py`
+- `app/views/analisis_sentimiento.py`
+- `app/views/eda.py`
+- `app/views/dashboard_integrado.py`
+- `app/views/prediccion_ventas.py`
 - `app/components/`
 
 ---
