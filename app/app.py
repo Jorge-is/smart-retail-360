@@ -7,6 +7,7 @@ from views.clasificador_productos import render as render_clasificador
 from views.analisis_sentimiento import render as render_sentimiento
 from views.dashboard_integrado import render as render_dashboard
 from views.prediccion_ventas import render as render_prediccion
+from components.metrics_card import render_kpi_row
 
 # Sistema de enrutamiento
 root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -46,6 +47,9 @@ if "last_sentiment_prediction" not in st.session_state:
 if "activity_log" not in st.session_state:
     st.session_state["activity_log"] = []
 
+if "forecasts_generated" not in st.session_state:
+    st.session_state["forecasts_generated"] = 0
+
 
 def render_inicio() -> None:
     st.title("SmartRetail 360")
@@ -57,6 +61,15 @@ def render_inicio() -> None:
     Esta plataforma integra módulos de inteligencia artificial para ayudar
     a tiendas online a tomar decisiones críticas.
     """)
+
+    render_kpi_row([
+        {"label": "Imágenes clasificadas", "value": str(st.session_state["images_classified"])},
+        {"label": "Reseñas analizadas", "value": str(st.session_state["reviews_analyzed"])},
+        {"label": "Pronósticos generados", "value": str(st.session_state["forecasts_generated"])},
+    ])
+    st.caption("Contadores de esta sesión — se reinician al recargar la app.")
+
+    st.divider()
 
     col1, col2, col3 = st.columns(3)
 
