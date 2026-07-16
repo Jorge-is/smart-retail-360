@@ -1,3 +1,6 @@
+# Local-only tooling config
+CLAUDE.md
+
 # Python
 __pycache__/
 *.py[cod]
