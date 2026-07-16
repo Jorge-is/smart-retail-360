@@ -119,7 +119,7 @@ def render() -> None:
               claramente el mes de mayor venta (temporada navideña).
             - **StoreType:** el tipo "b" vende más en promedio, pero representa
               solo 17 de 1,115 tiendas — variable muy desbalanceada.
-            - **Estado:** EDA completo. Prophet y XGBoost entrenados sobre un
-              subconjunto de 10 tiendas (ver `SALES_STORE_SUBSET` en
-              `src/utils/config.py`) — ver resultados en Predicción de Ventas.
+            - **Estado:** EDA completo. Prophet (por tienda) y XGBoost (global)
+              entrenados sobre las 1,115 tiendas — ver resultados en Predicción
+              de Ventas.
             """)

@@ -266,6 +266,6 @@ Cada módulo entrega un análisis de viabilidad documentado usando `src/evaluati
 
 ## Nota sobre Módulo 3
 
-Retomado por decisión de Jorge, con alcance ampliado respecto al plan original (Prophet + XGBoost + integración de sentimiento con M2, en vez de solo Prophet). Implementado por Víctor y Jeremy sobre un subconjunto de 10 tiendas de Rossmann (`SALES_STORE_SUBSET`).
+Retomado por decisión de Jorge, con alcance ampliado respecto al plan original (Prophet + XGBoost + integración de sentimiento con M2, en vez de solo Prophet). Implementado por Víctor y Jeremy: Prophet entrenado para las 1115 tiendas de Rossmann, XGBoost global sobre las mismas 1115. El selector del dashboard solo expone 10 tiendas (`SALES_STORE_SUBSET`) para simplificar la demo.
 
 ⚠️ El regressor de sentimiento usado en el entrenamiento proviene de reseñas sintéticas derivadas de la propia tendencia de ventas (`generate_synthetic_reviews()`), no de reseñas reales independientes — ver limitación documentada en `docs/api_contracts.md` y en la página EDA del dashboard.

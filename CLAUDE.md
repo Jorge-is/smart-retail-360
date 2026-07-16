@@ -23,7 +23,7 @@ python -c "from src.sales_predictor.train import train_all; train_all()"
 
 Three active AI modules (M1, M2, M3), each exposing a single `predict()` function. The Streamlit dashboard calls only those functions — it has no direct knowledge of TensorFlow, scikit-learn, Prophet, or XGBoost.
 
-M3 (sales_predictor) trains Prophet per-store and XGBoost globally, but only over a 10-store subset of Rossmann (`SALES_STORE_SUBSET` in `src/utils/config.py`), not the full 1115 stores. Its sentiment regressor comes from synthetic reviews generated from the sales trend itself (`generate_synthetic_reviews()` in `features.py`) — a known methodological limitation, not real independent review data. See `docs/api_contracts.md` for details.
+M3 (sales_predictor) trains Prophet per-store across all 1115 Rossmann stores, plus one global XGBoost model over the same 1115 for comparison. `SALES_STORE_SUBSET` in `src/utils/config.py` only restricts which stores appear in the dashboard's selector, not what's trained — the rest of the catalog has a model but isn't exposed in the UI. Its sentiment regressor comes from synthetic reviews generated from the sales trend itself (`generate_synthetic_reviews()` in `features.py`) — a known methodological limitation, not real independent review data. See `docs/api_contracts.md` for details.
 
 ### The predict() contract
 
@@ -82,7 +82,7 @@ All paths and constants come from `src/utils/config.py`, which reads `.env` via 
 | image_classifier | `models/image_classifier/mobilenetv2.keras` | Keras `model.save` |
 | sentiment_analyzer | `models/sentiment_analyzer/tfidf_baseline.pkl` | joblib Pipeline (RandomForest) |
 | sentiment_analyzer | `models/sentiment_analyzer/beto_finetuned/` | HuggingFace `save_pretrained` |
-| sales_predictor | `models/sales_predictor/prophet_models.joblib` | joblib dict `{store_id: Prophet}`, consolidado (10 tiendas) |
+| sales_predictor | `models/sales_predictor/prophet_models.joblib` | joblib dict `{store_id: Prophet}`, consolidado (1115 tiendas) |
 | sales_predictor | `models/sales_predictor/xgboost_global.joblib` | joblib `LogTargetXGBRegressor`, un solo modelo global |
 
 Models are in `.gitignore`. Train in Colab (notebooks in `notebooks/`) and copy the output files into `models/`.

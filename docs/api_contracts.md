@@ -88,9 +88,11 @@ Esto permite que el dashboard y los tests sean independientes del modelo subyace
 
 ## Módulo 3 — Predicción de ventas
 
-> **Estado:** activo. Prophet (por tienda) + XGBoost (global, comparación) entrenados
-> sobre un subconjunto de 10 tiendas de Rossmann (`SALES_STORE_SUBSET` en
-> `src/utils/config.py`), no las 1115 completas.
+> **Estado:** activo. Prophet (un modelo por tienda, las 1115) + XGBoost (un solo modelo
+> global sobre las 1115 tiendas, para comparación) entrenados sobre el dataset completo
+> de Rossmann. El selector de tienda en el dashboard (`SALES_STORE_SUBSET` en
+> `src/utils/config.py`) solo expone 10 tiendas para simplificar la demo — el resto
+> del catálogo tiene modelo entrenado pero no aparece en el selector.
 >
 > ⚠️ **Limitación conocida:** el regressor `sentiment` usado en el entrenamiento
 > proviene de reseñas sintéticas (`generate_synthetic_reviews()`) derivadas de la
@@ -103,7 +105,7 @@ Esto permite que el dashboard y los tests sean independientes del modelo subyace
 **Input:**
 | Parámetro | Tipo | Descripción |
 |-----------|------|-------------|
-| `store_id` | `int` | ID de tienda — debe estar en `SALES_STORE_SUBSET` (10 tiendas entrenadas), no el rango completo 1–1115. |
+| `store_id` | `int` | ID de tienda, 1–1115 (Prophet tiene modelo para las 1115). El selector del dashboard solo ofrece `SALES_STORE_SUBSET` (10 tiendas) para simplificar la demo. |
 | `horizon_days` | `int` | Días a pronosticar: típicamente 7, 15 o 30. |
 | `sentiment_score` | `float \| None` | Score de sentimiento (0.0–1.0). Si el modelo fue entrenado con regressor de sentimiento y se pasa `None`, se usa un valor neutral (0.5) internamente. |
 | `reference_date` | `date \| None` | Fecha desde la que se cuenta el horizonte. `None` usa la fecha actual. |
