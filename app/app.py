@@ -20,10 +20,21 @@ if app_dir not in sys.path:
 
 st.set_page_config(
     page_title="SmartRetail 360",
-    page_icon=":material/storefront:",
+    page_icon="app/assets/icon_smartretail.png",
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+st.markdown("""
+    <style>
+    [data-testid="stSidebarNav"] span {
+        font-size: 1.05rem;
+    }
+    [data-testid="stSidebarNav"] [data-testid="stIconMaterial"] {
+        font-size: 1.3rem;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 # Estado global — arranca en cero, se llena con uso real de los módulos
 if "images_classified" not in st.session_state:
